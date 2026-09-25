@@ -5,7 +5,11 @@ import { COLLECTIONS, readCollection } from "./storage";
 import type { Place, Product, ShoppingList } from "./types";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-const MAX_PLAZOS = 3;
+/** Máximo de compras históricas en las que se basa la estimación de consumo. */
+const MAX_PLAZOS = (() => {
+  const n = Number(process.env.NEXT_PUBLIC_CONSUMPTION_HISTORY_MAX);
+  return Number.isInteger(n) && n > 0 ? n : 3;
+})();
 
 export interface Purchase {
   productId: string;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { CatalogProduct, debounce, searchCatalog } from "@/lib/dia";
+import { CatalogProduct, debounce, searchCatalog } from "@/lib/catalog";
 import { SuggestedPrice } from "./SuggestedPrice";
 
 export function ProductSearch({
@@ -55,7 +55,7 @@ export function ProductSearch({
     <div className="relative">
       <input
         className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-brand focus:ring-brand/40"
-        placeholder="Buscar producto en Día…"
+        placeholder="Buscar producto…"
         value={term}
         onChange={(e) => {
           setTerm(e.target.value);

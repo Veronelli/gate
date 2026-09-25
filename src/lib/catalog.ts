@@ -1,8 +1,6 @@
-export const DIA_ENDPOINT =
-  "https://diaonline.supermercadosdia.com.ar/api/intelligent-search/v1/product-search";
 const TIMEOUT_MS = 6000;
 
-export const SUGGESTED_PRICE_LEGEND = "Precio sugerido (referencia Día)";
+export const SUGGESTED_PRICE_LEGEND = "Precio sugerido";
 
 export interface CatalogProduct {
   id: string;
@@ -12,25 +10,25 @@ export interface CatalogProduct {
   suggestedPrice: number;
 }
 
-interface DiaItem {
+interface CatalogApiItem {
   images?: { imageUrl?: string }[];
   sellers?: {
     commertialOffer?: { Price?: number; ListPrice?: number };
   }[];
 }
 
-interface DiaProduct {
+interface CatalogApiProduct {
   productId?: string;
   productName?: string;
   brand?: string;
-  items?: DiaItem[];
+  items?: CatalogApiItem[];
 }
 
-interface DiaSearchResponse {
-  products?: DiaProduct[];
+export interface CatalogSearchResponse {
+  products?: CatalogApiProduct[];
 }
 
-function mapProduct(p: DiaProduct): CatalogProduct | null {
+function mapProduct(p: CatalogApiProduct): CatalogProduct | null {
   if (!p.productId || !p.productName) return null;
   const item = p.items?.[0];
   const price =
@@ -46,15 +44,15 @@ function mapProduct(p: DiaProduct): CatalogProduct | null {
   };
 }
 
-export function mapDiaProducts(body: DiaSearchResponse): CatalogProduct[] {
+export function mapCatalogProducts(body: CatalogSearchResponse): CatalogProduct[] {
   return (body.products ?? [])
     .map(mapProduct)
     .filter((p): p is CatalogProduct => p !== null);
 }
 
 /**
- * Busca en el catálogo vía `/api/productos` (proxy server-side de la API de
- * Día, que no permite CORS desde el navegador).
+ * Busca en el catálogo vía `/api/productos` (proxy server-side: la API de
+ * catálogo no permite CORS desde el navegador).
  */
 export async function searchCatalog(
   term: string,
@@ -71,12 +69,12 @@ export async function searchCatalog(
     });
   } catch {
     throw new Error(
-      "No se pudo consultar el catálogo de Día. Revisá tu conexión e intentá de nuevo.",
+      "No se pudo consultar el catálogo. Revisá tu conexión e intentá de nuevo.",
     );
   }
   if (!res.ok) {
     throw new Error(
-      "No se pudo consultar el catálogo de Día. Intentá de nuevo más tarde.",
+      "No se pudo consultar el catálogo. Intentá de nuevo más tarde.",
     );
   }
   const body = (await res.json()) as { products?: CatalogProduct[] };

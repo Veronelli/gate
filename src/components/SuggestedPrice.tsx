@@ -1,4 +1,4 @@
-import { SUGGESTED_PRICE_LEGEND } from "@/lib/dia";
+import { SUGGESTED_PRICE_LEGEND } from "@/lib/catalog";
 
 const ars = new Intl.NumberFormat("es-AR", {
   style: "currency",
