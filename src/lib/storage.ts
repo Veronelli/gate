@@ -11,6 +11,7 @@ export const COLLECTIONS = {
   items: "items",
   products: "products",
   invites: "invites",
+  tags: "tags",
 } as const;
 
 export const SESSION_KEY = `${PREFIX}session`;

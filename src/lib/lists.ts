@@ -2,11 +2,13 @@ import { canWritePlace, getPlaceRole, isPlaceAdmin } from "./places";
 import { COLLECTIONS, readCollection, updateCollection } from "./storage";
 import type {
   InvitePermission,
+  ListImportance,
   ListItem,
   ListItemSnapshot,
   ListInvite,
   ListState,
   ShoppingList,
+  Tag,
   User,
 } from "./types";
 
@@ -25,6 +27,46 @@ export const LIST_STATES: ListState[] = [
 const readLists = () => readCollection<ShoppingList>(COLLECTIONS.lists);
 const readItems = () => readCollection<ListItem>(COLLECTIONS.items);
 const readInvites = () => readCollection<ListInvite>(COLLECTIONS.invites);
+const readTags = () => readCollection<Tag>(COLLECTIONS.tags);
+
+/** Normaliza nombres de etiqueta: trim + dedupe case-insensitive. */
+function normalizeTags(tags: string[]): string[] {
+  const seen = new Set<string>();
+  return tags
+    .map((t) => t.trim())
+    .filter((t) => {
+      if (!t) return false;
+      const key = t.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+}
+
+/** Registra etiquetas nuevas del usuario (las existentes no se duplican). */
+function ensureTags(userId: string, tags: string[]): void {
+  const existing = readTags().filter((t) => t.userId === userId);
+  const known = new Set(existing.map((t) => t.name.toLowerCase()));
+  const fresh = tags.filter((t) => !known.has(t.toLowerCase()));
+  if (!fresh.length) return;
+  const now = new Date().toISOString();
+  updateCollection<Tag>(COLLECTIONS.tags, (items) => [
+    ...items,
+    ...fresh.map((name) => ({
+      id: crypto.randomUUID(),
+      userId,
+      name,
+      createdAt: now,
+    })),
+  ]);
+}
+
+/** Etiquetas ya creadas por el usuario (para reutilizarlas en otras listas). */
+export function listUserTags(userId: string): string[] {
+  return readTags()
+    .filter((t) => t.userId === userId)
+    .map((t) => t.name);
+}
 
 /** Hook que el motor de consumo registra para reaccionar cuando una lista pasa a `listo`. */
 let onListCompleted: ((list: ShoppingList) => void) | null = null;
@@ -76,17 +118,26 @@ export function canEditList(listId: string, userId: string): boolean {
   );
 }
 
+export interface NewListOptions {
+  tags?: string[];
+  /** ISO datetime local o absoluta; null/undefined = sin programar. */
+  scheduledAt?: string | null;
+  importance?: ListImportance;
+}
+
 export function createList(
   placeId: string,
   byUserId: string,
   name: string,
   description?: string,
+  options?: NewListOptions,
 ): ListsResult<ShoppingList> {
   const trimmed = name.trim();
   if (!trimmed) return fail("El nombre de la lista es obligatorio.");
   if (!canWritePlace(placeId, byUserId)) {
     return fail("Necesitás permiso de escritura en el lugar para crear listas.");
   }
+  const tags = normalizeTags(options?.tags ?? []);
   const list: ShoppingList = {
     id: crypto.randomUUID(),
     placeId,
@@ -94,12 +145,54 @@ export function createList(
     description: description?.trim() || undefined,
     createdBy: byUserId,
     state: "listando",
+    tags,
+    scheduledAt: options?.scheduledAt ?? null,
+    importance: options?.importance ?? "media",
   };
   updateCollection<ShoppingList>(COLLECTIONS.lists, (items) => [
     ...items,
     list,
   ]);
+  ensureTags(byUserId, tags);
   return ok(list);
+}
+
+/** Actualiza etiquetas y fecha/hora programada de una lista (requiere edición). */
+export function setListMeta(
+  listId: string,
+  byUserId: string,
+  changes: {
+    tags?: string[];
+    scheduledAt?: string | null;
+    importance?: ListImportance;
+  },
+): ListsResult<ShoppingList> {
+  const list = getList(listId);
+  if (!list) return fail("La lista no existe.");
+  if (!canEditList(listId, byUserId)) {
+    return fail("No tenés permiso para editar esta lista.");
+  }
+  const tags =
+    changes.tags !== undefined
+      ? normalizeTags(changes.tags)
+      : (list.tags ?? []);
+  const updated: ShoppingList = {
+    ...list,
+    tags,
+    scheduledAt:
+      changes.scheduledAt !== undefined
+        ? changes.scheduledAt
+        : (list.scheduledAt ?? null),
+    importance:
+      changes.importance !== undefined
+        ? changes.importance
+        : (list.importance ?? "media"),
+  };
+  updateCollection<ShoppingList>(COLLECTIONS.lists, (items) =>
+    items.map((l) => (l.id === listId ? updated : l)),
+  );
+  if (changes.tags !== undefined) ensureTags(byUserId, tags);
+  return ok(updated);
 }
 
 export function listPlaceLists(

@@ -1,6 +1,7 @@
 export type PlaceRole = "admin" | "write" | "read";
 export type InvitePermission = "read" | "edit";
 export type ListState = "listando" | "a_comprar" | "comprando" | "listo";
+export type ListImportance = "alta" | "media" | "baja";
 
 export interface User {
   id: string;
@@ -55,6 +56,20 @@ export interface ShoppingList {
   description?: string;
   createdBy: string;
   state: ListState;
+  /** Etiquetas del usuario asignadas a la lista (ej.: "asado", "cumpleaños"). */
+  tags: string[];
+  /** Fecha y hora programadas para hacer la compra (ISO); null si no se programó. */
+  scheduledAt: string | null;
+  /** Nivel de importancia de la lista. */
+  importance: ListImportance;
+}
+
+/** Etiqueta reutilizable del usuario (se puede aplicar a varias listas). */
+export interface Tag {
+  id: string;
+  userId: string;
+  name: string;
+  createdAt: string;
 }
 
 export interface ListItemSnapshot {
