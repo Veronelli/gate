@@ -45,28 +45,29 @@ export function AuthScreen({ onLoggedIn }: { onLoggedIn: () => void }) {
   }
 
   return (
-    <main className="flex min-h-screen">
-      {/* Lateral de imágenes */}
-      <aside className="hidden w-1/3 flex-col gap-4 bg-emerald-700 p-6 lg:flex">
-        <h1 className="font-brand text-4xl text-white">food2check</h1>
-        <p className="text-sm text-emerald-100">
-          Tus listas de compras, siempre al día.
-        </p>
-        {[1, 2, 3].map((n) => (
-          <div
-            key={n}
-            className="flex flex-1 items-center justify-center rounded-lg border border-emerald-500/40 bg-emerald-600/50 text-sm text-emerald-200"
-          >
-            Espacio para imagen {n}
-          </div>
-        ))}
-        <footer className="-mx-6 -mb-6 mt-auto bg-[#E36954] px-6 py-4 text-white">
-          <p className="font-brand text-lg">food2check</p>
-          <p className="text-xs text-white/80">
-            Organizá las compras de tu lugar.
+    <main className="flex min-h-screen flex-col">
+      {/* Navbar a lo ancho de la página */}
+      <nav className="border-b border-[#c95543] bg-[#E36954]">
+        <div className="mx-auto flex max-w-7xl items-center px-6 py-3">
+          <h1 className="font-brand text-2xl text-white">food2check</h1>
+        </div>
+      </nav>
+
+      <div className="flex flex-1">
+        {/* Lateral de imágenes */}
+        <aside className="hidden w-1/3 flex-col gap-4 bg-emerald-700 p-6 lg:flex">
+          <p className="text-sm text-emerald-100">
+            Tus listas de compras, siempre al día.
           </p>
-        </footer>
-      </aside>
+          {[1, 2, 3].map((n) => (
+            <div
+              key={n}
+              className="flex flex-1 items-center justify-center rounded-lg border border-emerald-500/40 bg-emerald-600/50 text-sm text-emerald-200"
+            >
+              Espacio para imagen {n}
+            </div>
+          ))}
+        </aside>
 
       {/* Login / registro */}
       <section className="flex flex-1 items-center justify-center p-6">
@@ -154,6 +155,7 @@ export function AuthScreen({ onLoggedIn }: { onLoggedIn: () => void }) {
           </div>
         </div>
       </section>
+      </div>
     </main>
   );
 }
