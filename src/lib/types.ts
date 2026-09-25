@@ -41,7 +41,7 @@ export interface Product {
   unitsRemaining: number;
   /** Unidades compradas la última vez; referencia para la tasa de consumo. */
   lastUnitsPurchased: number;
-  /** Últimos intervalos (días) entre compras; máx. 3 entradas. */
+  /** Últimos intervalos (días) entre compras; máx. NEXT_PUBLIC_CONSUMPTION_HISTORY_MAX entradas (default 3). */
   plazos: number[];
   lastPurchaseAt: string | null;
   /** Cuándo se actualizó el stock (compra o ajuste manual); base para descontar raciones por tiempo. */

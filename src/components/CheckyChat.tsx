@@ -38,11 +38,11 @@ const FAQ: QA[] = [
   },
   {
     q: "¿Cómo agrego productos a una lista?",
-    a: "Abrí la lista y usá el buscador: se consulta el catálogo del supermercado Día como referencia y el producto se agrega con imagen, marca y precio sugerido.",
+    a: "Abrí la lista y usá el buscador: se consulta un catálogo de supermercado como referencia y el producto se agrega con imagen, marca y precio sugerido.",
   },
   {
     q: "¿Qué significa el precio sugerido?",
-    a: "Es un precio de referencia del supermercado Día. No es necesariamente el precio del comercio donde vos comprás.",
+    a: "Es un precio de referencia del catálogo. No es necesariamente el precio del comercio donde vos comprás.",
   },
   {
     q: "¿Cómo funcionan los estados de una lista?",
@@ -58,7 +58,7 @@ const FAQ: QA[] = [
   },
   {
     q: "¿Cómo calcula las sugerencias?",
-    a: "food2check aprende el ritmo real de consumo: cada vez que una lista pasa a “Listo”, guarda el plazo entre compras (máximo 3 por producto). Con ese promedio y las raciones que quedan estima cuántos días te duran; por eso cada producto muestra “Quedan ~X días”.",
+    a: "food2check aprende el ritmo real de consumo: cada vez que una lista pasa a “Listo”, guarda el plazo entre compras (los últimos por producto). Con ese promedio y las raciones que quedan estima cuántos días te duran; por eso cada producto muestra “Quedan ~X días”.",
   },
   {
     q: "¿Qué son las raciones y el refresco?",

@@ -1,6 +1,6 @@
 ## Context
 
-Greenfield sobre un template Next.js 15 + React 19 + Tailwind 4 que se despliega con OpenNext/Cloudflare (Webflow Cloud). El starter solo tiene `src/app/{layout,page}.tsx` + estilos. Toda la persistencia es local-first en el navegador (localStorage) — el usuario lo definió explícitamente: cuentas, places, listas, productos e historiales viven en el dispositivo. La única dependencia externa es la API de intelligent-search de Día (`diaonline.supermercadosdia.com.ar`), usada como catálogo de referencia.
+Greenfield sobre un template Next.js 15 + React 19 + Tailwind 4 que se despliega con OpenNext/Cloudflare (Webflow Cloud). El starter solo tiene `src/app/{layout,page}.tsx` + estilos. Toda la persistencia es local-first en el navegador (localStorage) — el usuario lo definió explícitamente: cuentas, places, listas, productos e historiales viven en el dispositivo. La única dependencia externa es una API de catálogo configurable por `CATALOG_API_URL`, usada como referencia de productos.
 
 ## Goals / Non-Goals
 
@@ -12,7 +12,7 @@ Greenfield sobre un template Next.js 15 + React 19 + Tailwind 4 que se despliega
 
 **Non-Goals:**
 - Backend, sincronización multi-dispositivo ni auth real (cuentas son locales del navegador).
-- Compra/checkout real — la API de Día es solo catálogo de referencia.
+- Compra/checkout real — la API de catálogo es solo referencia.
 - IndexedDB/service worker/PWA offline — localStorage alcanza para el MVP (ver riesgos).
 
 ## Decisions
@@ -70,10 +70,10 @@ Al pasar una lista a `listo` (o ante actualización manual de stock), por cada p
 
 La configuración de variables es **por place** (`consumptionConfig`): permite ajustar umbrales/pesos sin afectar otros places.
 
-### 6. Integración Día (solo catálogo)
-- Helper `searchCatalog(term)` llama a `GET /api/productos?q={term}` — route handler de Next que proxy-ea `https://diaonline.supermercadosdia.com.ar/api/intelligent-search/v1/product-search?query={term}` (API pública de VTEX, sin clave). El proxy es necesario porque la API de Día no habilita CORS para el navegador.
+### 6. Integración de catálogo externo
+- Helper `searchCatalog(term)` llama a `GET /api/productos?q={term}` — route handler de Next que proxy-ea la URL de `CATALOG_API_URL` (soporta placeholder `{q}`). El proxy es necesario porque la API de catálogo no habilita CORS para el navegador.
 - Debounce ~300ms, `AbortController` para cancelar requests viejas, timeout con mensaje de error en español y opción de reintentar.
-- Se parsea `products[]`: `productId` → id, `productName` → nombre, `brand`, `items[0].images[0].imageUrl`, `sellers[0].commertialOffer.Price` → `suggestedPrice`. En toda la UI el precio lleva leyenda "precio sugerido (referencia Día)".
+- Se parsea `products[]`: `productId` → id, `productName` → nombre, `brand`, `items[0].images[0].imageUrl`, `sellers[0].commertialOffer.Price` → `suggestedPrice`. En toda la UI el precio lleva la leyenda "Precio sugerido". El máximo de compras históricas usado por el motor de consumo se configura con `NEXT_PUBLIC_CONSUMPTION_HISTORY_MAX` (default 3).
 
 ### 7. Estructura de app
 - `src/app/page.tsx`: shell de auth (lateral de imágenes + login/registro toggle). Si hay sesión, renderiza el panel.
@@ -84,7 +84,7 @@ La configuración de variables es **por place** (`consumptionConfig`): permite a
 ## Risks / Trade-offs
 
 - **localStorage (~5MB, solo mismo navegador/dispositivo)** → historial capado a 3 plazos, snapshots sin duplicar binarios (solo URLs), capa de storage intercambiable si crece.
-- **La API de Día puede cambiar o bloquear requests** → manejo de error con reintento; no bloquea el resto de la app.
+- **La API de catálogo puede cambiar o bloquear requests** → manejo de error con reintento; no bloquea el resto de la app.
 - **Auth local no es seguridad real** (hash reversible por acceso al dispositivo) → se documenta; es un MVP de cuentas locales, no un sistema de auth.
 - **"Compartir" solo funciona entre cuentas del mismo navegador** → limitación inherente al modelo local-first pedido; el modelo de datos ya separa place/list/invite para permitir backend futuro.
 - **SSR + localStorage** → toda la UI de datos es client-side; evitar hidratación leyendo storage en `useEffect`/provider montado.
