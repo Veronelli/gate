@@ -33,6 +33,7 @@ Membership  { placeId, userId, role: 'admin' | 'write' | 'read' }
 Product     { id, placeId, name, brand, imageUrl, suggestedPrice,
               refreshDays,            // atributo de actualización/refresco
               unitsRemaining,         // raciones/unidades que el usuario indica
+              stockUpdatedAt,         // cuándo se actualizó el stock (base del descuento por tiempo)
               plazos: number[],       // máx. 3 intervalos (días) entre compras
               lastPurchaseAt }
 ShoppingList{ id, placeId, name, description?, createdBy,
@@ -63,7 +64,8 @@ Al pasar una lista a `listo` (o ante actualización manual de stock), por cada p
 1. `intervalo = hoy - lastPurchaseAt` (días); si hay `lastPurchaseAt`, se pushea a `plazos` manteniendo **máx. 3** (drop del más antiguo).
 2. **Plazo estimado = proporción sobre lo que ya tenía**: `plazoEstimado = promedioPonderado(plazos)` con mayor peso al más reciente (pesos 3/2/1); sin historial se usa `refreshDays` del producto (o `defaultRefreshDays` del place).
 3. Tiempo restante: `diasRestantes = plazoEstimado * (unitsRemaining / unitsReferencia)`, donde `unitsReferencia` es la cantidad comprada la última vez (default = unidades compradas actuales).
-4. Actualizar `lastPurchaseAt`, `unitsRemaining += unidadesCompradas`.
+4. Actualizar `lastPurchaseAt`, `unitsRemaining += unidadesCompradas`, `stockUpdatedAt = ahora`.
+5. **Descuento de raciones por tiempo**: el stock efectivo es `unitsRemaining - tasa × díasDesde(stockUpdatedAt)` (tasa = `lastUnitsPurchased / plazoEstimado`), con piso en 0. Así las sugerencias envejecen sin escrituras periódicas en localStorage. Sin `stockUpdatedAt`/`lastPurchaseAt` (datos viejos o nunca comprados) el stock no decae.
 5. Score de prioridad para sugerencias: `1 - diasRestantes/plazoEstimado` → orden decreciente; cuando `diasRestantes <= reminderThresholdDays` se emite el recordatorio "es posible que tengas que comprar más unidades del producto X".
 
 La configuración de variables es **por place** (`consumptionConfig`): permite ajustar umbrales/pesos sin afectar otros places.

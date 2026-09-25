@@ -61,7 +61,6 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
     setError(r.ok ? null : (r.error ?? "Ocurrió un error."));
 
   const suggestions = place ? getSuggestedItems(place.id) : [];
-  const reminders = suggestions.filter((s) => s.reminder !== null);
   const placeLists = place ? listPlaceLists(place.id, user.id) : [];
   const placeProducts = place ? listPlaceProducts(place.id, user.id) : [];
   const admin = place ? isPlaceAdmin(place.id, user.id) : false;
@@ -331,19 +330,6 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
           <>
             <h2 className="text-2xl font-semibold">{place.name}</h2>
 
-            {reminders.length > 0 && (
-              <div className="mt-4 space-y-2">
-                {reminders.map((r) => (
-                  <p
-                    key={r.product.id}
-                    className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800"
-                  >
-                    {r.reminder}
-                  </p>
-                ))}
-              </div>
-            )}
-
             <div className="mt-6 grid gap-6 lg:grid-cols-2">
               {/* Listas del lugar */}
               <section>
@@ -445,8 +431,8 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
                       <div className="flex-1">
                         <p className="text-sm font-medium">{s.product.name}</p>
                         <p className="text-xs text-gray-500">
-                          Quedan ~{Math.ceil(s.daysRemaining)} días ·{" "}
-                          {s.product.unitsRemaining} uds.
+                          Quedan ~{Math.ceil(s.daysRemaining)} días · ~
+                          {Math.max(0, Math.round(s.unitsRemaining))} uds.
                         </p>
                       </div>
                       <div className="h-2 w-16 overflow-hidden rounded bg-gray-200">

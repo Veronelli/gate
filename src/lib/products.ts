@@ -62,6 +62,7 @@ export function addProductFromSearch(
     lastUnitsPurchased: 0,
     plazos: [],
     lastPurchaseAt: null,
+    stockUpdatedAt: null,
   };
   updateCollection<Product>(COLLECTIONS.products, (items) => [
     ...items,
@@ -88,7 +89,14 @@ export function updateProductVariables(
   ) {
     return fail("Los valores deben ser positivos.");
   }
-  const updated: Product = { ...product, ...changes };
+  const updated: Product = {
+    ...product,
+    ...changes,
+    // Rebasar el descuento de raciones desde el ajuste manual.
+    ...(changes.unitsRemaining !== undefined
+      ? { stockUpdatedAt: new Date().toISOString() }
+      : {}),
+  };
   updateCollection<Product>(COLLECTIONS.products, (items) =>
     items.map((p) =>
       p.placeId === placeId && p.id === productId ? updated : p,

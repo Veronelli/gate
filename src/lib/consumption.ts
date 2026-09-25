@@ -17,6 +17,8 @@ export interface SuggestedItem {
   /** 0 = recién repuesto, 1 = agotado (orden descendente). */
   score: number;
   daysRemaining: number;
+  /** Raciones estimadas restantes, descontando el consumo por tiempo. */
+  unitsRemaining: number;
   reminder: string | null;
 }
 
@@ -40,12 +42,40 @@ export function estimatedIntervalDays(product: Product, place: Place): number {
   return weighted / weights;
 }
 
-/** Días estimados hasta agotar las raciones actuales al ritmo de consumo. */
-export function daysRemaining(product: Product, place: Place): number {
+/** Raciones consumidas por día: unidades de la última compra ÷ plazo estimado. */
+function unitsPerDay(product: Product, place: Place): number {
   const interval = estimatedIntervalDays(product, place);
-  const reference = product.lastUnitsPurchased || 1;
-  const unitsPerDay = reference / interval;
-  return unitsPerDay > 0 ? product.unitsRemaining / unitsPerDay : 0;
+  if (interval <= 0 || product.lastUnitsPurchased <= 0) return 0;
+  return product.lastUnitsPurchased / interval;
+}
+
+/**
+ * Raciones restantes estimadas: descuenta `tasa × días transcurridos`
+ * desde la última actualización de stock (compra o ajuste manual).
+ */
+export function effectiveUnitsRemaining(
+  product: Product,
+  place: Place,
+  now: Date = new Date(),
+): number {
+  const rate = unitsPerDay(product, place);
+  if (rate <= 0) return product.unitsRemaining;
+  const baseline = product.stockUpdatedAt ?? product.lastPurchaseAt;
+  if (!baseline) return product.unitsRemaining;
+  const elapsed = (now.getTime() - new Date(baseline).getTime()) / DAY_MS;
+  if (elapsed <= 0) return product.unitsRemaining;
+  return Math.max(0, product.unitsRemaining - rate * elapsed);
+}
+
+/** Días estimados hasta agotar las raciones actuales al ritmo de consumo. */
+export function daysRemaining(
+  product: Product,
+  place: Place,
+  now: Date = new Date(),
+): number {
+  const rate = unitsPerDay(product, place);
+  if (rate <= 0) return 0;
+  return effectiveUnitsRemaining(product, place, now) / rate;
 }
 
 /** 0 = recién repuesto, →1 = por agotarse. */
@@ -82,6 +112,7 @@ export function recordPurchase(
       unitsRemaining: product.unitsRemaining + units,
       lastUnitsPurchased: units,
       lastPurchaseAt: now.toISOString(),
+      stockUpdatedAt: now.toISOString(),
     });
   }
 }
@@ -94,7 +125,11 @@ export function updateProductStock(
 ): void {
   const product = getProduct(placeId, productId);
   if (!product || unitsRemaining < 0) return;
-  saveProduct({ ...product, unitsRemaining });
+  saveProduct({
+    ...product,
+    unitsRemaining,
+    stockUpdatedAt: new Date().toISOString(),
+  });
 }
 
 function onListCompleted(list: ShoppingList): void {
@@ -118,14 +153,16 @@ export function reminderMessage(product: Product): string {
 export function getSuggestedItems(placeId: string): SuggestedItem[] {
   const place = getPlace(placeId);
   if (!place) return [];
+  const now = new Date();
   return readCollection<Product>(COLLECTIONS.products)
     .filter((p) => p.placeId === placeId)
     .map((product) => {
-      const remaining = daysRemaining(product, place);
+      const remaining = daysRemaining(product, place, now);
       return {
         product,
         score: consumptionScore(product, place),
         daysRemaining: remaining,
+        unitsRemaining: effectiveUnitsRemaining(product, place, now),
         reminder:
           remaining <= place.consumptionConfig.reminderThresholdDays
             ? reminderMessage(product)

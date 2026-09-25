@@ -43,6 +43,8 @@ export interface Product {
   /** Últimos intervalos (días) entre compras; máx. 3 entradas. */
   plazos: number[];
   lastPurchaseAt: string | null;
+  /** Cuándo se actualizó el stock (compra o ajuste manual); base para descontar raciones por tiempo. */
+  stockUpdatedAt: string | null;
 }
 
 export interface ShoppingList {
