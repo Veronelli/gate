@@ -19,10 +19,10 @@ const LATERAL_IMAGES = [
 const SLIDE_MS = 4000;
 
 const FEATURES = [
-  "Registrá tus compras.",
-  "Compartí tu listado de compras con algún familiar.",
-  "Agregá permisos a los invitados.",
-  "Tené un paneo general de las sugerencias de qué debés comprar.",
+  "Registrá tus compras del supermercado.",
+  "Compartí tu listado de compras con tu familia.",
+  "Agregá permisos a los invitados de tu hogar.",
+  "Tené un paneo general de lo que tenés que comprar.",
   "Fácil de usar y registrar.",
 ];
 const FEATURE_MS = 3500;

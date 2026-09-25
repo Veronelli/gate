@@ -362,7 +362,7 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
               {/* Items a considerar */}
               <section>
                 <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
-                  A considerar para comprar
+                  Sugerencias de compra
                 </h3>
                 <ul className="mt-2 divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white shadow-sm">
                   {suggestions.length === 0 && (
