@@ -23,7 +23,11 @@ import {
   updateConsumptionConfig,
   getPlace,
 } from "@/lib/places";
-import { listPlaceProducts, updateProductVariables } from "@/lib/products";
+import {
+  deleteProduct,
+  listPlaceProducts,
+  updateProductVariables,
+} from "@/lib/products";
 import { STATE_LABELS, ListDetail } from "./ListDetail";
 import { SuggestedPrice } from "./SuggestedPrice";
 
@@ -517,6 +521,24 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
                               }}
                             />
                           </label>
+                          <button
+                            type="button"
+                            className="rounded-lg border border-red-300 px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+                            onClick={() => {
+                              if (
+                                window.confirm(
+                                  `¿Eliminar "${p.name}" del lugar?`,
+                                )
+                              ) {
+                                showError(
+                                  deleteProduct(place.id, user.id, p.id),
+                                );
+                                bump();
+                              }
+                            }}
+                          >
+                            Eliminar
+                          </button>
                         </>
                       )}
                     </li>

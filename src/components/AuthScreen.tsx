@@ -18,6 +18,42 @@ const LATERAL_IMAGES = [
 
 const SLIDE_MS = 4000;
 
+const FEATURES = [
+  "Registrá tus compras.",
+  "Compartí tu listado de compras con algún familiar.",
+  "Agregá permisos a los invitados.",
+  "Tené un paneo general de las sugerencias de qué debés comprar.",
+  "Fácil de usar y registrar.",
+];
+const FEATURE_MS = 3500;
+
+function FeatureRotator() {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(
+      () => setIndex((i) => (i + 1) % FEATURES.length),
+      FEATURE_MS,
+    );
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="relative h-6" aria-live="polite">
+      {FEATURES.map((f, i) => (
+        <p
+          key={f}
+          className={`absolute inset-x-0 text-center text-sm text-gray-600 transition-opacity duration-500 ${
+            i === index ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          {f}
+        </p>
+      ))}
+    </div>
+  );
+}
+
 function LateralCarousel() {
   const [index, setIndex] = useState(0);
   const [failed, setFailed] = useState<Record<string, boolean>>({});
@@ -110,7 +146,9 @@ export function AuthScreen({ onLoggedIn }: { onLoggedIn: () => void }) {
 
         {/* Login / registro */}
         <section className="flex flex-1 items-center justify-center p-6">
-          <div className="w-full max-w-sm rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="w-full max-w-sm">
+            <FeatureRotator />
+            <div className="mt-4 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
             <h2 className="font-brand text-2xl text-gray-900">
               {isRegister ? "Crear cuenta local" : "Iniciar sesión"}
             </h2>
@@ -193,6 +231,7 @@ export function AuthScreen({ onLoggedIn }: { onLoggedIn: () => void }) {
                   </button>
                 </>
               )}
+            </div>
             </div>
           </div>
         </section>

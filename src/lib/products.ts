@@ -105,6 +105,23 @@ export function updateProductVariables(
   return ok(updated);
 }
 
+/** Elimina un producto del lugar (los items en listas conservan su snapshot). */
+export function deleteProduct(
+  placeId: string,
+  byUserId: string,
+  productId: string,
+): ProductsResult<null> {
+  if (!canWritePlace(placeId, byUserId)) {
+    return fail("Necesitás permiso de escritura para eliminar productos.");
+  }
+  const product = getProduct(placeId, productId);
+  if (!product) return fail("El producto no existe en este lugar.");
+  updateCollection<Product>(COLLECTIONS.products, (items) =>
+    items.filter((p) => !(p.placeId === placeId && p.id === productId)),
+  );
+  return ok(null);
+}
+
 /** Uso interno del motor de consumo: persiste campos calculados del producto. */
 export function saveProduct(product: Product): void {
   updateCollection<Product>(COLLECTIONS.products, (items) =>
