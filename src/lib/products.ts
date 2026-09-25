@@ -1,6 +1,6 @@
 import { canWritePlace, getPlace, getPlaceRole } from "./places";
 import { COLLECTIONS, readCollection, updateCollection } from "./storage";
-import type { CotoProduct } from "./coto";
+import type { CatalogProduct } from "./dia";
 import type { Product } from "./types";
 
 export type ProductsResult<T> =
@@ -39,7 +39,7 @@ export function listPlaceProducts(
 export function addProductFromSearch(
   placeId: string,
   byUserId: string,
-  result: CotoProduct,
+  result: CatalogProduct,
   options?: { refreshDays?: number; unitsRemaining?: number },
 ): ProductsResult<Product> {
   const place = getPlace(placeId);
@@ -62,6 +62,7 @@ export function addProductFromSearch(
     lastUnitsPurchased: 0,
     plazos: [],
     lastPurchaseAt: null,
+    stockUpdatedAt: null,
   };
   updateCollection<Product>(COLLECTIONS.products, (items) => [
     ...items,
@@ -88,13 +89,37 @@ export function updateProductVariables(
   ) {
     return fail("Los valores deben ser positivos.");
   }
-  const updated: Product = { ...product, ...changes };
+  const updated: Product = {
+    ...product,
+    ...changes,
+    // Rebasar el descuento de raciones desde el ajuste manual.
+    ...(changes.unitsRemaining !== undefined
+      ? { stockUpdatedAt: new Date().toISOString() }
+      : {}),
+  };
   updateCollection<Product>(COLLECTIONS.products, (items) =>
     items.map((p) =>
       p.placeId === placeId && p.id === productId ? updated : p,
     ),
   );
   return ok(updated);
+}
+
+/** Elimina un producto del lugar (los items en listas conservan su snapshot). */
+export function deleteProduct(
+  placeId: string,
+  byUserId: string,
+  productId: string,
+): ProductsResult<null> {
+  if (!canWritePlace(placeId, byUserId)) {
+    return fail("Necesitás permiso de escritura para eliminar productos.");
+  }
+  const product = getProduct(placeId, productId);
+  if (!product) return fail("El producto no existe en este lugar.");
+  updateCollection<Product>(COLLECTIONS.products, (items) =>
+    items.filter((p) => !(p.placeId === placeId && p.id === productId)),
+  );
+  return ok(null);
 }
 
 /** Uso interno del motor de consumo: persiste campos calculados del producto. */

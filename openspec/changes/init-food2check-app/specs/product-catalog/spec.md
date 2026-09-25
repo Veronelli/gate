@@ -12,7 +12,7 @@ Cada producto DEBERÁ ser único por su `id` dentro del sistema y DEBERÁ estar 
 - **THEN** el sistema reutiliza el producto existente en lugar de duplicarlo
 
 ### Requirement: Datos visibles del producto
-El producto DEBERÁ mostrar imagen, nombre, marca y precio sugerido. El precio DEBERÁ presentarse siempre con la aclaración visible de que es un **precio sugerido de referencia** (basado en los precios de Coto), no el precio del lugar donde el usuario compra.
+El producto DEBERÁ mostrar imagen, nombre, marca y precio sugerido. El precio DEBERÁ presentarse siempre con la aclaración visible de que es un **precio sugerido de referencia** (basado en los precios de Día), no el precio del lugar donde el usuario compra.
 
 #### Scenario: Ficha de producto
 - **WHEN** el usuario ve un producto en el catálogo o en una lista

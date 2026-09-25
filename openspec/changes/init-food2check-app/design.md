@@ -1,6 +1,6 @@
 ## Context
 
-Greenfield sobre un template Next.js 15 + React 19 + Tailwind 4 que se despliega con OpenNext/Cloudflare (Webflow Cloud). El starter solo tiene `src/app/{layout,page}.tsx` + estilos. Toda la persistencia es local-first en el navegador (localStorage) — el usuario lo definió explícitamente: cuentas, places, listas, productos e historiales viven en el dispositivo. La única dependencia externa es la API de autocomplete de Coto (`ac.cnstrc.com`), usada como catálogo de referencia.
+Greenfield sobre un template Next.js 15 + React 19 + Tailwind 4 que se despliega con OpenNext/Cloudflare (Webflow Cloud). El starter solo tiene `src/app/{layout,page}.tsx` + estilos. Toda la persistencia es local-first en el navegador (localStorage) — el usuario lo definió explícitamente: cuentas, places, listas, productos e historiales viven en el dispositivo. La única dependencia externa es la API de intelligent-search de Día (`diaonline.supermercadosdia.com.ar`), usada como catálogo de referencia.
 
 ## Goals / Non-Goals
 
@@ -12,7 +12,7 @@ Greenfield sobre un template Next.js 15 + React 19 + Tailwind 4 que se despliega
 
 **Non-Goals:**
 - Backend, sincronización multi-dispositivo ni auth real (cuentas son locales del navegador).
-- Compra/checkout real — la API de Coto es solo catálogo de referencia.
+- Compra/checkout real — la API de Día es solo catálogo de referencia.
 - IndexedDB/service worker/PWA offline — localStorage alcanza para el MVP (ver riesgos).
 
 ## Decisions
@@ -33,6 +33,7 @@ Membership  { placeId, userId, role: 'admin' | 'write' | 'read' }
 Product     { id, placeId, name, brand, imageUrl, suggestedPrice,
               refreshDays,            // atributo de actualización/refresco
               unitsRemaining,         // raciones/unidades que el usuario indica
+              stockUpdatedAt,         // cuándo se actualizó el stock (base del descuento por tiempo)
               plazos: number[],       // máx. 3 intervalos (días) entre compras
               lastPurchaseAt }
 ShoppingList{ id, placeId, name, description?, createdBy,
@@ -63,15 +64,16 @@ Al pasar una lista a `listo` (o ante actualización manual de stock), por cada p
 1. `intervalo = hoy - lastPurchaseAt` (días); si hay `lastPurchaseAt`, se pushea a `plazos` manteniendo **máx. 3** (drop del más antiguo).
 2. **Plazo estimado = proporción sobre lo que ya tenía**: `plazoEstimado = promedioPonderado(plazos)` con mayor peso al más reciente (pesos 3/2/1); sin historial se usa `refreshDays` del producto (o `defaultRefreshDays` del place).
 3. Tiempo restante: `diasRestantes = plazoEstimado * (unitsRemaining / unitsReferencia)`, donde `unitsReferencia` es la cantidad comprada la última vez (default = unidades compradas actuales).
-4. Actualizar `lastPurchaseAt`, `unitsRemaining += unidadesCompradas`.
+4. Actualizar `lastPurchaseAt`, `unitsRemaining += unidadesCompradas`, `stockUpdatedAt = ahora`.
+5. **Descuento de raciones por tiempo**: el stock efectivo es `unitsRemaining - tasa × díasDesde(stockUpdatedAt)` (tasa = `lastUnitsPurchased / plazoEstimado`), con piso en 0. Así las sugerencias envejecen sin escrituras periódicas en localStorage. Sin `stockUpdatedAt`/`lastPurchaseAt` (datos viejos o nunca comprados) el stock no decae.
 5. Score de prioridad para sugerencias: `1 - diasRestantes/plazoEstimado` → orden decreciente; cuando `diasRestantes <= reminderThresholdDays` se emite el recordatorio "es posible que tengas que comprar más unidades del producto X".
 
 La configuración de variables es **por place** (`consumptionConfig`): permite ajustar umbrales/pesos sin afectar otros places.
 
-### 6. Integración Coto (solo catálogo)
-- Helper `searchCoto(term)`: `GET https://ac.cnstrc.com/autocomplete/{encodeURIComponent(term)}?key={key}` donde `key = 'key_' + randomAlphanumeric(16)` generada por request (temporal, por pedido del usuario).
+### 6. Integración Día (solo catálogo)
+- Helper `searchCatalog(term)` llama a `GET /api/productos?q={term}` — route handler de Next que proxy-ea `https://diaonline.supermercadosdia.com.ar/api/intelligent-search/v1/product-search?query={term}` (API pública de VTEX, sin clave). El proxy es necesario porque la API de Día no habilita CORS para el navegador.
 - Debounce ~300ms, `AbortController` para cancelar requests viejas, timeout con mensaje de error en español y opción de reintentar.
-- Se parsea el payload best-effort (imagen, nombre, marca, precio) → `suggestedPrice`. En toda la UI el precio lleva leyenda "precio sugerido (referencia Coto)".
+- Se parsea `products[]`: `productId` → id, `productName` → nombre, `brand`, `items[0].images[0].imageUrl`, `sellers[0].commertialOffer.Price` → `suggestedPrice`. En toda la UI el precio lleva leyenda "precio sugerido (referencia Día)".
 
 ### 7. Estructura de app
 - `src/app/page.tsx`: shell de auth (lateral de imágenes + login/registro toggle). Si hay sesión, renderiza el panel.
@@ -82,7 +84,7 @@ La configuración de variables es **por place** (`consumptionConfig`): permite a
 ## Risks / Trade-offs
 
 - **localStorage (~5MB, solo mismo navegador/dispositivo)** → historial capado a 3 plazos, snapshots sin duplicar binarios (solo URLs), capa de storage intercambiable si crece.
-- **Clave `key_*` aleatoria puede ser rechazada por Coto** → manejo de error con reintento + `consumptionConfig`/constante para fijar una clave real después; no bloquea el resto de la app.
+- **La API de Día puede cambiar o bloquear requests** → manejo de error con reintento; no bloquea el resto de la app.
 - **Auth local no es seguridad real** (hash reversible por acceso al dispositivo) → se documenta; es un MVP de cuentas locales, no un sistema de auth.
 - **"Compartir" solo funciona entre cuentas del mismo navegador** → limitación inherente al modelo local-first pedido; el modelo de datos ya separa place/list/invite para permitir backend futuro.
 - **SSR + localStorage** → toda la UI de datos es client-side; evitar hidratación leyendo storage en `useEffect`/provider montado.
@@ -93,5 +95,4 @@ Sin migración (proyecto nuevo). El documento raíz de storage incluye `schemaVe
 
 ## Open Questions
 
-- ¿La clave real de Coto llegará por config/env en una iteración futura? (asumido: sí, por eso la generación aleatoria es temporal)
-- ¿Imágenes del lateral: assets fijos en `public/` o configurables? (asumido: sección con imágenes fijas por ahora)
+- ¿Imágenes del lateral: assets fijos en `public/lateral/` servidos por el carrusel? (asumido: el usuario las coloca ahí)

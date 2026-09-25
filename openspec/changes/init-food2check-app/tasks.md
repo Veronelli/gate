@@ -22,11 +22,11 @@
 - [x] 4.3 Implementar items con snapshot (id, nombre, marca, imagen, precio sugerido, unidades al momento de agregar) y verificar que el snapshot no cambia si el producto se actualiza
 - [x] 4.4 Implementar sección de invitados de la lista (agregar cuenta del navegador como `read`, otorgar `edit`) y verificar que `read` no edita y `edit` sí
 
-## 5. Catálogo e integración Coto
+## 5. Catálogo e integración Día
 
-- [x] 5.1 Implementar `searchCoto(term)` (key `key_`+random por request, debounce, AbortController, timeout con error en español + reintento) y verificar búsqueda real contra `ac.cnstrc.com`
+- [x] 5.1 Implementar `searchCatalog(term)` (`product-search?query=`, debounce, AbortController, timeout con error en español + reintento) y verificar búsqueda real contra `diaonline.supermercadosdia.com.ar`
 - [x] 5.2 Implementar alta de producto desde resultado (único por `id` dentro del place, hereda imagen/nombre/marca/precio) y verificar que repetir el id no duplica
-- [x] 5.3 Mostrar precio con leyenda "precio sugerido (referencia Coto)" en catálogo, búsqueda y lista — componente `SuggestedPrice` creado; la verificación en las tres vistas queda cubierta por el E2E de la tarea 7.3
+- [x] 5.3 Mostrar precio con leyenda "precio sugerido (referencia Día)" en catálogo, búsqueda y lista — componente `SuggestedPrice` creado; la verificación en las tres vistas queda cubierta por el E2E de la tarea 7.3
 - [x] 5.4 Implementar `refreshDays` y `unitsRemaining` editables por producto y verificar que editarlos persiste y dispara recálculo
 
 ## 6. Motor de consumo
@@ -37,12 +37,12 @@
 
 ## 7. App shell y vistas
 
-- [ ] 7.1 Reemplazar `page.tsx` por shell con lateral de imágenes + login, y sección "crear cuenta local" que transforma el form a registro (username/password/repeat) sin cambiar de página — verificar ambos modos en la UI
-- [ ] 7.2 Implementar panel post-login: selector de place, listado de listas con estado, sección de items sugeridos ordenados por consumo — verificar que cambiar de place actualiza todo el panel
-- [ ] 7.3 Implementar detalle de lista: agregar productos vía buscador Coto, marcar items, avanzar estado, sección invitados — verificar el flujo completo crear→listo
-- [ ] 7.4 Asegurar que toda la UI de datos sea client-side sin errores de hidratación (leer storage tras mount) — verificar `npm run dev` sin warnings de hydration
+- [x] 7.1 Reemplazar `page.tsx` por shell con lateral de imágenes + login, y sección "crear cuenta local" que transforma el form a registro (username/password/repeat) sin cambiar de página — verificar ambos modos en la UI
+- [x] 7.2 Implementar panel post-login: selector de place, listado de listas con estado, sección de items sugeridos ordenados por consumo — verificar que cambiar de place actualiza todo el panel
+- [x] 7.3 Implementar detalle de lista: agregar productos vía buscador Día, marcar items, avanzar estado, sección invitados — verificar el flujo completo crear→listo
+- [x] 7.4 Asegurar que toda la UI de datos sea client-side sin errores de hidratación (leer storage tras mount) — verificar `npm run dev` sin warnings de hydration
 
 ## 8. Verificación final
 
-- [ ] 8.1 `npm run lint` y `npm run build` sin errores
-- [ ] 8.2 Recorrido manual E2E: registrar 2 usuarios → crear place → invitar → crear lista → agregar producto Coto → completar compra → verificar sugerencia y recordatorio
+- [x] 8.1 `npm run lint` y `npm run build` sin errores
+- [ ] 8.2 Recorrido manual E2E: registrar 2 usuarios → crear place → invitar → crear lista → agregar producto Día → completar compra → verificar sugerencia y recordatorio
