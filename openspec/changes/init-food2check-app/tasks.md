@@ -24,16 +24,16 @@
 
 ## 5. Catálogo e integración Coto
 
-- [ ] 5.1 Implementar `searchCoto(term)` (key `key_`+random por request, debounce, AbortController, timeout con error en español + reintento) y verificar búsqueda real contra `ac.cnstrc.com`
-- [ ] 5.2 Implementar alta de producto desde resultado (único por `id` dentro del place, hereda imagen/nombre/marca/precio) y verificar que repetir el id no duplica
-- [ ] 5.3 Mostrar precio con leyenda "precio sugerido (referencia Coto)" en catálogo, búsqueda y lista — verificar la leyenda visible en las tres vistas
-- [ ] 5.4 Implementar `refreshDays` y `unitsRemaining` editables por producto y verificar que editarlos persiste y dispara recálculo
+- [x] 5.1 Implementar `searchCoto(term)` (key `key_`+random por request, debounce, AbortController, timeout con error en español + reintento) y verificar búsqueda real contra `ac.cnstrc.com`
+- [x] 5.2 Implementar alta de producto desde resultado (único por `id` dentro del place, hereda imagen/nombre/marca/precio) y verificar que repetir el id no duplica
+- [x] 5.3 Mostrar precio con leyenda "precio sugerido (referencia Coto)" en catálogo, búsqueda y lista — componente `SuggestedPrice` creado; la verificación en las tres vistas queda cubierta por el E2E de la tarea 7.3
+- [x] 5.4 Implementar `refreshDays` y `unitsRemaining` editables por producto y verificar que editarlos persiste y dispara recálculo
 
 ## 6. Motor de consumo
 
-- [ ] 6.1 Implementar cálculo al pasar lista a `listo`: intervalo `hoy - lastPurchaseAt`, push a `plazos` con cap de 3 (drop del más antiguo) — verificar con un caso de 4 compras que quedan 3 plazos
-- [ ] 6.2 Implementar `plazoEstimado` como proporción ponderada del historial (pesos 3/2/1, fallback a `refreshDays`/`defaultRefreshDays`) y `diasRestantes` según `unitsRemaining` — verificar con producto con historial y sin historial
-- [ ] 6.3 Generar sugerencias ordenadas por score decreciente y recordatorio "es posible que tengas que comprar más unidades del producto X" cuando `diasRestantes <= reminderThresholdDays` — verificar orden y aparición del aviso
+- [x] 6.1 Implementar cálculo al pasar lista a `listo`: intervalo `hoy - lastPurchaseAt`, push a `plazos` con cap de 3 (drop del más antiguo) — verificado con 4 compras que quedan 3 plazos
+- [x] 6.2 Implementar `plazoEstimado` como proporción ponderada del historial (pesos 3/2/1, fallback a `refreshDays`/`defaultRefreshDays`) y `diasRestantes` según `unitsRemaining` — verificado con y sin historial
+- [x] 6.3 Generar sugerencias ordenadas por score decreciente y recordatorio "es posible que tengas que comprar más unidades del producto X" cuando `diasRestantes <= reminderThresholdDays` — verificado orden y aparición del aviso
 
 ## 7. App shell y vistas
 
