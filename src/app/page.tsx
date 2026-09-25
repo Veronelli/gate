@@ -1,38 +1,27 @@
 "use client";
 
-import { useState } from "react";
-
-function Counter() {
-  const [count, setCount] = useState(0);
-  return (
-    <button type="button" onClick={() => setCount((c) => c + 1)}>
-      count is {count}
-    </button>
-  );
-}
+import { useEffect, useReducer, useState } from "react";
+import { getSession } from "@/lib/auth";
+import { AuthScreen } from "@/components/AuthScreen";
+import { Dashboard } from "@/components/Dashboard";
 
 export default function Home() {
-  return (
-    <div id="app">
-      <div>
-        <a href="https://nextjs.org" target="_blank" rel="noopener noreferrer">
-          <img src="/next.svg" className="logo" alt="Next.js logo" />
-        </a>
-        <a
-          href="https://webflow.com/cloud"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="/webflow.svg" className="logo vanilla" alt="Webflow logo" />
-        </a>
-        <h1>Next.js + Webflow Cloud</h1>
-        <div className="card">
-          <Counter />
-        </div>
-        <p className="read-the-docs">
-          Click on the Next.js and Webflow logos to learn more
-        </p>
-      </div>
-    </div>
-  );
+  const [mounted, setMounted] = useState(false);
+  const [tick, bump] = useReducer((x: number) => x + 1, 0);
+
+  // localStorage solo existe en el cliente: leer tras el mount evita
+  // diferencias de hidratación entre SSR y el primer render del cliente.
+  useEffect(() => setMounted(true), []);
+
+  if (!mounted) {
+    return (
+      <main className="flex min-h-screen items-center justify-center">
+        <p className="text-neutral-500">Cargando…</p>
+      </main>
+    );
+  }
+
+  const session = getSession();
+  if (!session) return <AuthScreen onLoggedIn={bump} />;
+  return <Dashboard key={session.userId + tick} onSessionChange={bump} />;
 }

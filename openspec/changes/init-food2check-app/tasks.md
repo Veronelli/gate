@@ -37,12 +37,12 @@
 
 ## 7. App shell y vistas
 
-- [ ] 7.1 Reemplazar `page.tsx` por shell con lateral de imágenes + login, y sección "crear cuenta local" que transforma el form a registro (username/password/repeat) sin cambiar de página — verificar ambos modos en la UI
-- [ ] 7.2 Implementar panel post-login: selector de place, listado de listas con estado, sección de items sugeridos ordenados por consumo — verificar que cambiar de place actualiza todo el panel
-- [ ] 7.3 Implementar detalle de lista: agregar productos vía buscador Coto, marcar items, avanzar estado, sección invitados — verificar el flujo completo crear→listo
-- [ ] 7.4 Asegurar que toda la UI de datos sea client-side sin errores de hidratación (leer storage tras mount) — verificar `npm run dev` sin warnings de hydration
+- [x] 7.1 Reemplazar `page.tsx` por shell con lateral de imágenes + login, y sección "crear cuenta local" que transforma el form a registro (username/password/repeat) sin cambiar de página — verificar ambos modos en la UI
+- [x] 7.2 Implementar panel post-login: selector de place, listado de listas con estado, sección de items sugeridos ordenados por consumo — verificar que cambiar de place actualiza todo el panel
+- [x] 7.3 Implementar detalle de lista: agregar productos vía buscador Coto, marcar items, avanzar estado, sección invitados — verificar el flujo completo crear→listo
+- [x] 7.4 Asegurar que toda la UI de datos sea client-side sin errores de hidratación (leer storage tras mount) — verificar `npm run dev` sin warnings de hydration
 
 ## 8. Verificación final
 
-- [ ] 8.1 `npm run lint` y `npm run build` sin errores
+- [x] 8.1 `npm run lint` y `npm run build` sin errores
 - [ ] 8.2 Recorrido manual E2E: registrar 2 usuarios → crear place → invitar → crear lista → agregar producto Coto → completar compra → verificar sugerencia y recordatorio
