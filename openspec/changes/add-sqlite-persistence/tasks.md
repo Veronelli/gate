@@ -17,4 +17,4 @@
 ## 4. Verificación
 
 - [x] 4.1 E2E curl: register → PUT doc → GET doc sin secretos → logout — OK en D1 local
-- [ ] 4.2 Verificación manual: registrarse, crear lugar/lista, cerrar sesión, reingresar desde otro navegador y comprobar que los datos están compartidos
+- [x] 4.2 Verificación manual: registrarse, crear lugar/lista, cerrar sesión, reingresar desde otro navegador y comprobar que los datos están compartidos

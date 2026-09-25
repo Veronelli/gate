@@ -45,4 +45,4 @@
 ## 8. Verificación final
 
 - [x] 8.1 `npm run lint` y `npm run build` sin errores
-- [ ] 8.2 Recorrido manual E2E: registrar 2 usuarios → crear place → invitar → crear lista → agregar producto del catálogo → completar compra → verificar sugerencia y recordatorio
+- [x] 8.2 Recorrido manual E2E: registrar 2 usuarios → crear place → invitar → crear lista → agregar producto del catálogo → completar compra → verificar sugerencia y recordatorio

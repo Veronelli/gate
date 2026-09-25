@@ -31,6 +31,7 @@ import { SuggestedPrice } from "./SuggestedPrice";
 export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) {
   const [, bump] = useReducer((x: number) => x + 1, 0);
   const [selectedListId, setSelectedListId] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [newPlace, setNewPlace] = useState("");
   const [newList, setNewList] = useState("");
   const [newListDesc, setNewListDesc] = useState("");
@@ -89,7 +90,18 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
   return (
     <main className="flex min-h-screen">
       {/* Sidebar: lugares y administración */}
-      <aside className="w-72 shrink-0 border-r border-gray-700 bg-gray-800 text-gray-200">
+      {/* Backdrop del menú en pantallas chicas */}
+      {menuOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/50 lg:hidden"
+          onClick={() => setMenuOpen(false)}
+        />
+      )}
+      <aside
+        className={`fixed inset-y-0 left-0 z-40 flex w-72 shrink-0 flex-col border-r border-gray-700 bg-gray-800 text-gray-200 transition-transform duration-200 lg:static lg:translate-x-0 ${
+          menuOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
         <div className="bg-brand px-4 py-3 text-white">
           <div className="flex items-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -99,17 +111,28 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
               className="mr-2 h-7 w-auto"
             />
             <h1 className="font-brand text-xl">food2check</h1>
+            <button
+              type="button"
+              aria-label="Cerrar menú"
+              className="ml-auto rounded p-1 text-white/80 hover:bg-white/10 lg:hidden"
+              onClick={() => setMenuOpen(false)}
+            >
+              ✕
+            </button>
           </div>
           <p className="mt-1 text-xs text-white/80">Hola, {user.username}</p>
         </div>
-        <div className="p-4">
+        <div className="flex flex-1 flex-col p-4">
         <h2 className="mt-2 text-sm font-semibold text-white">Mis lugares</h2>
         <ul className="mt-2 space-y-1">
           {myPlaces.map(({ place: p, role }) => (
             <li key={p.id}>
               <button
                 type="button"
-                onClick={() => setActivePlace(p.id)}
+                onClick={() => {
+                  setActivePlace(p.id);
+                  setMenuOpen(false);
+                }}
                 className={`w-full rounded-lg px-3 py-2 text-left text-sm ${
                   p.id === activePlaceId
                     ? "bg-brand font-medium text-white"
@@ -251,7 +274,8 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
           </>
         )}
 
-        <div className="mt-8 space-y-2 border-t border-gray-700 pt-4">
+        </div>
+        <div className="mt-auto border-t border-gray-700 p-4">
           <button
             type="button"
             className="w-full rounded-lg border border-gray-600 bg-gray-700 px-5 py-2 text-sm font-medium text-white hover:bg-gray-600 focus:outline-none focus:ring-4 focus:ring-gray-500"
@@ -263,11 +287,18 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
             Cerrar sesión
           </button>
         </div>
-        </div>
       </aside>
 
       {/* Panel principal */}
       <section className="flex-1 bg-gray-100 p-6">
+        <button
+          type="button"
+          aria-label="Abrir menú"
+          className="mb-4 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm lg:hidden"
+          onClick={() => setMenuOpen(true)}
+        >
+          ☰ Menú
+        </button>
         {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
         {selectedListId ? (
           <ListDetail
