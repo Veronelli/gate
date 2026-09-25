@@ -4,6 +4,7 @@ import { useEffect, useReducer, useState } from "react";
 import { getSession } from "@/lib/auth";
 import { AuthScreen } from "@/components/AuthScreen";
 import { Dashboard } from "@/components/Dashboard";
+import { CheckyChat } from "@/components/CheckyChat";
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
@@ -22,6 +23,14 @@ export default function Home() {
   }
 
   const session = getSession();
-  if (!session) return <AuthScreen onLoggedIn={bump} />;
-  return <Dashboard key={session.userId + tick} onSessionChange={bump} />;
+  return (
+    <>
+      {session ? (
+        <Dashboard key={session.userId + tick} onSessionChange={bump} />
+      ) : (
+        <AuthScreen onLoggedIn={bump} />
+      )}
+      <CheckyChat />
+    </>
+  );
 }

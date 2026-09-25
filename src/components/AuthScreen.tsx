@@ -39,15 +39,17 @@ function FeatureRotator() {
   }, []);
 
   return (
-    <div className="relative h-6" aria-live="polite">
+    <div className="relative h-10" aria-live="polite">
       {FEATURES.map((f, i) => (
         <p
           key={f}
-          className={`absolute inset-x-0 text-center text-sm text-gray-600 transition-opacity duration-500 ${
+          className={`absolute inset-x-0 flex justify-center transition-opacity duration-500 ${
             i === index ? "opacity-100" : "opacity-0"
           }`}
         >
-          {f}
+          <span className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-white shadow">
+            {f}
+          </span>
         </p>
       ))}
     </div>
@@ -67,8 +69,8 @@ function LateralCarousel() {
   }, []);
 
   return (
-    <div className="relative flex-1 overflow-hidden rounded-lg bg-white/15">
-      <div className="absolute inset-0 flex items-center justify-center text-sm text-white/70">
+    <div className="relative flex-1 overflow-hidden rounded-lg bg-white">
+      <div className="absolute inset-0 flex items-center justify-center text-sm text-gray-400">
         Imagen del lateral
       </div>
       {LATERAL_IMAGES.map((src, i) =>
@@ -137,10 +139,7 @@ export function AuthScreen({ onLoggedIn }: { onLoggedIn: () => void }) {
 
       <div className="flex flex-1">
         {/* Lateral con carrusel de imágenes (55% de la página) */}
-        <aside className="hidden w-[55%] flex-col gap-4 bg-brand p-6 lg:flex">
-          <p className="text-sm text-white/80">
-            Tus listas de compras, siempre al día.
-          </p>
+        <aside className="hidden w-[55%] flex-col bg-white p-6 lg:flex">
           <LateralCarousel />
         </aside>
 
@@ -148,7 +147,7 @@ export function AuthScreen({ onLoggedIn }: { onLoggedIn: () => void }) {
         <section className="flex flex-1 items-center justify-center p-6">
           <div className="w-full max-w-sm">
             <FeatureRotator />
-            <div className="mt-4 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="mt-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
             <h2 className="font-brand text-2xl text-gray-900">
               {isRegister ? "Crear cuenta local" : "Iniciar sesión"}
             </h2>

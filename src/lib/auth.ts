@@ -90,9 +90,6 @@ export async function login(
   return { ok: true, user };
 }
 
-/** Cambiar de cuenta exige la contraseña del usuario seleccionado. */
-export const switchAccount = login;
-
 export function getSession(): Session | null {
   return getJSON<Session | null>(SESSION_KEY, null);
 }

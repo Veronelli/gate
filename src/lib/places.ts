@@ -145,6 +145,21 @@ export function inviteMember(
   return ok(membership);
 }
 
+/** Invita a un miembro escribiendo su username (único en el navegador). */
+export function inviteMemberByUsername(
+  placeId: string,
+  byUserId: string,
+  username: string,
+  role: Exclude<PlaceRole, "admin">,
+): PlacesResult<Membership> {
+  const target = readCollection<User>(COLLECTIONS.users).find(
+    (u) =>
+      u.username.trim().toLowerCase() === username.trim().toLowerCase(),
+  );
+  if (!target) return fail("El usuario no existe en este navegador.");
+  return inviteMember(placeId, byUserId, target.id, role);
+}
+
 export function setMemberRole(
   placeId: string,
   byUserId: string,

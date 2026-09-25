@@ -50,7 +50,7 @@ export function ListDetail({
   const list = getList(listId);
   if (!list) {
     return (
-      <div className="p-6">
+      <div>
         <button type="button" onClick={onBack} className="text-sm underline">
           ← Volver
         </button>
@@ -60,7 +60,7 @@ export function ListDetail({
   }
   if (!canReadList(listId, userId)) {
     return (
-      <div className="p-6">
+      <div>
         <button type="button" onClick={onBack} className="text-sm underline">
           ← Volver
         </button>
@@ -103,7 +103,7 @@ export function ListDetail({
   }
 
   return (
-    <div className="p-6">
+    <div>
       <button type="button" onClick={onBack} className="text-sm underline">
         ← Volver
       </button>

@@ -4,17 +4,15 @@ import { useEffect, useReducer, useState } from "react";
 import {
   getCurrentUser,
   getSession,
-  listLocalAccounts,
   logout,
   setActivePlace,
-  switchAccount,
 } from "@/lib/auth";
 import { getSuggestedItems } from "@/lib/consumption";
 import { createList, listPlaceLists } from "@/lib/lists";
 import {
   canWritePlace,
   createPlace,
-  inviteMember,
+  inviteMemberByUsername,
   isPlaceAdmin,
   listMembers,
   listUserPlaces,
@@ -39,8 +37,6 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
   const [newListDesc, setNewListDesc] = useState("");
   const [inviteUser, setInviteUser] = useState("");
   const [inviteRole, setInviteRole] = useState<"read" | "write">("read");
-  const [switchUser, setSwitchUser] = useState("");
-  const [switchPass, setSwitchPass] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const user = getCurrentUser();
@@ -70,30 +66,17 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
   const admin = place ? isPlaceAdmin(place.id, user.id) : false;
   const writable = place ? canWritePlace(place.id, user.id) : false;
   const members = place ? listMembers(place.id) : [];
-  const memberIds = new Set(members.map((m) => m.user.id));
-  const invitableAccounts = listLocalAccounts().filter(
-    (a) => !memberIds.has(a.id),
-  );
-
-  if (selectedListId) {
-    return (
-      <ListDetail
-        listId={selectedListId}
-        userId={user.id}
-        onBack={() => setSelectedListId(null)}
-        onChanged={bump}
-      />
-    );
-  }
 
   return (
     <main className="flex min-h-screen">
       {/* Sidebar: lugares y administración */}
-      <aside className="w-72 shrink-0 border-r bg-white p-4">
-        <h1 className="text-xl font-bold text-brand">food2check</h1>
-        <p className="mt-1 text-xs text-gray-500">Hola, {user.username}</p>
-
-        <h2 className="mt-6 text-sm font-semibold">Mis lugares</h2>
+      <aside className="w-72 shrink-0 border-r border-gray-700 bg-gray-800 text-gray-200">
+        <div className="bg-brand px-4 py-3 text-white">
+          <h1 className="font-brand text-xl">food2check</h1>
+          <p className="mt-1 text-xs text-white/80">Hola, {user.username}</p>
+        </div>
+        <div className="p-4">
+        <h2 className="mt-2 text-sm font-semibold text-white">Mis lugares</h2>
         <ul className="mt-2 space-y-1">
           {myPlaces.map(({ place: p, role }) => (
             <li key={p.id}>
@@ -102,8 +85,8 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
                 onClick={() => setActivePlace(p.id)}
                 className={`w-full rounded-lg px-3 py-2 text-left text-sm ${
                   p.id === activePlaceId
-                    ? "bg-brand/15 font-medium text-brand-dark"
-                    : "hover:bg-gray-100"
+                    ? "bg-brand font-medium text-white"
+                    : "text-gray-300 hover:bg-gray-700"
                 }`}
               >
                 {p.name}
@@ -114,7 +97,7 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
         </ul>
         <div className="mt-2 flex gap-1">
           <input
-            className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-brand focus:ring-brand/40"
+            className="block w-full rounded-lg border border-gray-600 bg-gray-700 p-2.5 text-sm text-white placeholder-gray-400 focus:border-brand focus:ring-brand/40"
             placeholder="Nuevo lugar…"
             value={newPlace}
             onChange={(e) => setNewPlace(e.target.value)}
@@ -138,7 +121,7 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
 
         {place && admin && (
           <>
-            <h2 className="mt-6 text-sm font-semibold">
+            <h2 className="mt-6 text-sm font-semibold text-white">
               Miembros de {place.name}
             </h2>
             <ul className="mt-2 space-y-1 text-sm">
@@ -157,7 +140,7 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
                   ) : (
                     <span className="flex items-center gap-1">
                       <select
-                        className="rounded-lg border border-gray-300 bg-gray-50 px-1.5 py-0.5 text-xs text-gray-900 focus:border-brand focus:ring-brand/40"
+                        className="rounded-lg border border-gray-600 bg-gray-700 px-1.5 py-0.5 text-xs text-white focus:border-brand focus:ring-brand/40"
                         value={m.role}
                         onChange={(e) => {
                           showError(
@@ -192,48 +175,45 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
                 </li>
               ))}
             </ul>
-            {invitableAccounts.length > 0 && (
-              <div className="mt-2 flex gap-1">
-                <select
-                  className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-1.5 text-xs text-gray-900 focus:border-brand focus:ring-brand/40"
-                  value={inviteUser}
-                  onChange={(e) => setInviteUser(e.target.value)}
-                >
-                  <option value="">Invitar usuario…</option>
-                  {invitableAccounts.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.username}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  className="rounded-lg border border-gray-300 bg-gray-50 px-1.5 py-1 text-xs text-gray-900 focus:border-brand focus:ring-brand/40"
-                  value={inviteRole}
-                  onChange={(e) =>
-                    setInviteRole(e.target.value as "read" | "write")
-                  }
-                >
-                  <option value="read">Lectura</option>
-                  <option value="write">Escritura</option>
-                </select>
-                <button
-                  type="button"
-                  className="rounded-lg bg-brand px-2.5 py-1.5 text-xs font-medium text-white hover:bg-brand-dark focus:outline-none focus:ring-4 focus:ring-brand/30"
-                  onClick={() => {
-                    if (!inviteUser) return;
-                    showError(
-                      inviteMember(place.id, user.id, inviteUser, inviteRole),
-                    );
-                    setInviteUser("");
-                    bump();
-                  }}
-                >
-                  OK
-                </button>
-              </div>
-            )}
+            <div className="mt-2 flex gap-1">
+              <input
+                className="block w-full rounded-lg border border-gray-600 bg-gray-700 p-1.5 text-xs text-white placeholder-gray-400 focus:border-brand focus:ring-brand/40"
+                placeholder="Nombre de usuario"
+                value={inviteUser}
+                onChange={(e) => setInviteUser(e.target.value)}
+              />
+              <select
+                className="rounded-lg border border-gray-600 bg-gray-700 px-1.5 py-1 text-xs text-white focus:border-brand focus:ring-brand/40"
+                value={inviteRole}
+                onChange={(e) =>
+                  setInviteRole(e.target.value as "read" | "write")
+                }
+              >
+                <option value="read">Lectura</option>
+                <option value="write">Escritura</option>
+              </select>
+              <button
+                type="button"
+                className="rounded-lg bg-brand px-2.5 py-1.5 text-xs font-medium text-white hover:bg-brand-dark focus:outline-none focus:ring-4 focus:ring-brand/30"
+                onClick={() => {
+                  if (!inviteUser.trim()) return;
+                  showError(
+                    inviteMemberByUsername(
+                      place.id,
+                      user.id,
+                      inviteUser,
+                      inviteRole,
+                    ),
+                  );
+                  setInviteUser("");
+                  bump();
+                }}
+              >
+                Invitar
+              </button>
+            </div>
 
-            <h2 className="mt-6 text-sm font-semibold">
+            <h2 className="mt-6 text-sm font-semibold text-white">
               Variables de consumo
             </h2>
             <div className="mt-2 space-y-2 text-sm">
@@ -248,7 +228,7 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
                   <input
                     type="number"
                     min={1}
-                    className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2 text-xs text-gray-900 focus:border-brand focus:ring-brand/40"
+                    className="block w-full rounded-lg border border-gray-600 bg-gray-700 p-2 text-xs text-white focus:border-brand focus:ring-brand/40"
                     defaultValue={place.consumptionConfig[field]}
                     onBlur={(e) => {
                       const v = Number(e.target.value);
@@ -268,49 +248,10 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
           </>
         )}
 
-        <div className="mt-8 space-y-2 border-t pt-4">
-          <details className="text-xs">
-            <summary className="cursor-pointer text-gray-600">
-              Cambiar de cuenta
-            </summary>
-            <div className="mt-2 space-y-1">
-              <select
-                className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-1.5 text-xs text-gray-900 focus:border-brand focus:ring-brand/40"
-                value={switchUser}
-                onChange={(e) => setSwitchUser(e.target.value)}
-              >
-                <option value="">Elegir cuenta…</option>
-                {listLocalAccounts()
-                  .filter((a) => a.id !== user.id)
-                  .map((a) => (
-                    <option key={a.id} value={a.username}>
-                      {a.username}
-                    </option>
-                  ))}
-              </select>
-              <input
-                type="password"
-                className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-1.5 text-xs text-gray-900 focus:border-brand focus:ring-brand/40"
-                placeholder="Contraseña de esa cuenta"
-                value={switchPass}
-                onChange={(e) => setSwitchPass(e.target.value)}
-              />
-              <button
-                type="button"
-                className="w-full rounded-lg bg-gray-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300"
-                onClick={async () => {
-                  const r = await switchAccount(switchUser, switchPass);
-                  if (r.ok) onSessionChange();
-                  else setError(r.error);
-                }}
-              >
-                Cambiar
-              </button>
-            </div>
-          </details>
+        <div className="mt-8 space-y-2 border-t border-gray-700 pt-4">
           <button
             type="button"
-            className="w-full rounded-lg border border-gray-300 bg-white px-5 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-200"
+            className="w-full rounded-lg border border-gray-600 bg-gray-700 px-5 py-2 text-sm font-medium text-white hover:bg-gray-600 focus:outline-none focus:ring-4 focus:ring-gray-500"
             onClick={() => {
               logout();
               onSessionChange();
@@ -319,11 +260,21 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
             Cerrar sesión
           </button>
         </div>
+        </div>
       </aside>
 
       {/* Panel principal */}
-      <section className="flex-1 p-6">
+      <section className="flex-1 bg-gray-100 p-6">
         {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
+        {selectedListId ? (
+          <ListDetail
+            listId={selectedListId}
+            userId={user.id}
+            onBack={() => setSelectedListId(null)}
+            onChanged={bump}
+          />
+        ) : (
+          <>
         {!place && (
           <p className="text-gray-500">
             Creá un lugar para empezar a armar tus listas.
@@ -546,6 +497,8 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
                 </ul>
               </section>
             )}
+          </>
+        )}
           </>
         )}
       </section>
