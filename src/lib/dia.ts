@@ -1,4 +1,4 @@
-const DIA_ENDPOINT =
+export const DIA_ENDPOINT =
   "https://diaonline.supermercadosdia.com.ar/api/intelligent-search/v1/product-search";
 const TIMEOUT_MS = 6000;
 
@@ -46,6 +46,16 @@ function mapProduct(p: DiaProduct): CatalogProduct | null {
   };
 }
 
+export function mapDiaProducts(body: DiaSearchResponse): CatalogProduct[] {
+  return (body.products ?? [])
+    .map(mapProduct)
+    .filter((p): p is CatalogProduct => p !== null);
+}
+
+/**
+ * Busca en el catálogo vía `/api/productos` (proxy server-side de la API de
+ * Día, que no permite CORS desde el navegador).
+ */
 export async function searchCatalog(
   term: string,
   signal?: AbortSignal,
@@ -54,10 +64,11 @@ export async function searchCatalog(
   if (!query) return [];
   const signals = [AbortSignal.timeout(TIMEOUT_MS)];
   if (signal) signals.push(signal);
-  const url = `${DIA_ENDPOINT}?query=${encodeURIComponent(query)}`;
   let res: Response;
   try {
-    res = await fetch(url, { signal: AbortSignal.any(signals) });
+    res = await fetch(`/api/productos?q=${encodeURIComponent(query)}`, {
+      signal: AbortSignal.any(signals),
+    });
   } catch {
     throw new Error(
       "No se pudo consultar el catálogo de Día. Revisá tu conexión e intentá de nuevo.",
@@ -68,10 +79,8 @@ export async function searchCatalog(
       "No se pudo consultar el catálogo de Día. Intentá de nuevo más tarde.",
     );
   }
-  const body = (await res.json()) as DiaSearchResponse;
-  return (body.products ?? [])
-    .map(mapProduct)
-    .filter((p): p is CatalogProduct => p !== null);
+  const body = (await res.json()) as { products?: CatalogProduct[] };
+  return body.products ?? [];
 }
 
 /** Debounce simple para la búsqueda desde la UI. */

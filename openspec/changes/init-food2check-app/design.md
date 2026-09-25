@@ -69,7 +69,7 @@ Al pasar una lista a `listo` (o ante actualización manual de stock), por cada p
 La configuración de variables es **por place** (`consumptionConfig`): permite ajustar umbrales/pesos sin afectar otros places.
 
 ### 6. Integración Día (solo catálogo)
-- Helper `searchCatalog(term)`: `GET https://diaonline.supermercadosdia.com.ar/api/intelligent-search/v1/product-search?query={term}` — API pública de VTEX, sin clave.
+- Helper `searchCatalog(term)` llama a `GET /api/productos?q={term}` — route handler de Next que proxy-ea `https://diaonline.supermercadosdia.com.ar/api/intelligent-search/v1/product-search?query={term}` (API pública de VTEX, sin clave). El proxy es necesario porque la API de Día no habilita CORS para el navegador.
 - Debounce ~300ms, `AbortController` para cancelar requests viejas, timeout con mensaje de error en español y opción de reintentar.
 - Se parsea `products[]`: `productId` → id, `productName` → nombre, `brand`, `items[0].images[0].imageUrl`, `sellers[0].commertialOffer.Price` → `suggestedPrice`. En toda la UI el precio lleva leyenda "precio sugerido (referencia Día)".
 
