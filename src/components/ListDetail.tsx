@@ -19,18 +19,36 @@ import {
   setItemChecked,
   setItemUnits,
   setInvitePermission,
+  setListMeta,
+  listUserTags,
 } from "@/lib/lists";
-import type { ListState } from "@/lib/types";
+import type { ListImportance, ListState } from "@/lib/types";
 import { addProductFromSearch } from "@/lib/products";
 import type { CatalogProduct } from "@/lib/catalog";
 import { ProductSearch } from "./ProductSearch";
 import { SuggestedPrice } from "./SuggestedPrice";
+import { TagPicker } from "./TagPicker";
+
+/** ISO → formato `YYYY-MM-DDTHH:mm` del input datetime-local (hora local). */
+function toLocalInput(iso: string | null): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 
 export const STATE_LABELS: Record<ListState, string> = {
   listando: "Listando",
   a_comprar: "A comprar",
   comprando: "Comprando",
   listo: "Listo",
+};
+
+export const IMPORTANCE_LABELS: Record<ListImportance, string> = {
+  alta: "Alta",
+  media: "Media",
+  baja: "Baja",
 };
 
 export function ListDetail({
@@ -113,6 +131,17 @@ export function ListDetail({
         <span className="rounded-full bg-brand/15 px-3 py-1 text-xs font-medium text-brand-dark">
           {STATE_LABELS[list.state]}
         </span>
+        <span
+          className={`rounded-full px-3 py-1 text-xs font-medium ${
+            (list.importance ?? "media") === "alta"
+              ? "bg-red-100 text-red-700"
+              : (list.importance ?? "media") === "baja"
+                ? "bg-gray-200 text-gray-600"
+                : "bg-amber-100 text-amber-700"
+          }`}
+        >
+          {IMPORTANCE_LABELS[list.importance ?? "media"]}
+        </span>
         {editable && nextState && (
           <button
             type="button"
@@ -130,6 +159,81 @@ export function ListDetail({
         <p className="mt-1 text-sm text-gray-600">{list.description}</p>
       )}
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+
+      {editable ? (
+        <section className="mt-4 max-w-md space-y-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+          <h3 className="text-sm font-medium">Etiquetas y programación</h3>
+          <TagPicker
+            tags={list.tags ?? []}
+            suggestions={listUserTags(userId)}
+            onChange={(tags) => {
+              showError(setListMeta(listId, userId, { tags }));
+              onChanged();
+            }}
+          />
+          <label className="block text-xs text-gray-500">
+            Programar para
+            <input
+              type="datetime-local"
+              className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-brand focus:ring-brand/40"
+              value={toLocalInput(list.scheduledAt ?? null)}
+              onChange={(e) => {
+                showError(
+                  setListMeta(listId, userId, {
+                    scheduledAt: e.target.value
+                      ? new Date(e.target.value).toISOString()
+                      : null,
+                  }),
+                );
+                onChanged();
+              }}
+            />
+          </label>
+          <label className="block text-xs text-gray-500">
+            Importancia
+            <select
+              className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-brand focus:ring-brand/40"
+              value={list.importance ?? "media"}
+              onChange={(e) => {
+                showError(
+                  setListMeta(listId, userId, {
+                    importance: e.target.value as ListImportance,
+                  }),
+                );
+                onChanged();
+              }}
+            >
+              <option value="alta">Alta</option>
+              <option value="media">Media</option>
+              <option value="baja">Baja</option>
+            </select>
+          </label>
+        </section>
+      ) : (
+        ((list.tags ?? []).length > 0 || list.scheduledAt) && (
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            {(list.tags ?? []).map((t) => (
+              <span
+                key={t}
+                className="rounded-full bg-gray-200 px-2.5 py-0.5 text-xs text-gray-600"
+              >
+                {t}
+              </span>
+            ))}
+            {list.scheduledAt && (
+              <span className="text-sm text-brand-dark">
+                📅{" "}
+                {new Date(list.scheduledAt).toLocaleString("es-AR", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </span>
+            )}
+          </div>
+        )
+      )}
 
       {editable && (
         <div className="mt-6">

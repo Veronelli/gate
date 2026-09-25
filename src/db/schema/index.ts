@@ -17,6 +17,18 @@ export const sessionsTable = sqliteTable("sessions_table", {
   createdAt: text("created_at").notNull(),
 });
 
+/** Contacto del usuario: teléfono + vínculo con Telegram. Modelo separado de `users`. */
+export const contactsTable = sqliteTable("contacts", {
+  id: text().primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .unique()
+    .references(() => usersTable.id),
+  phone: text().notNull().default(""),
+  telegramChatId: text("telegram_chat_id"),
+  createdAt: text("created_at").notNull(),
+});
+
 /** Documento JSON con el dominio (places, listas, productos, invitaciones). */
 export const appStateTable = sqliteTable("app_state", {
   id: int().primaryKey(),

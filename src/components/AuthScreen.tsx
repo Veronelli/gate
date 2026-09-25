@@ -114,6 +114,14 @@ export function AuthScreen({ onLoggedIn }: { onLoggedIn: () => void }) {
     }
     setBusy(false);
     if (result.ok) {
+      // Si venimos de un deep-link (ej. botón de Telegram), volvemos ahí.
+      const redirect = new URLSearchParams(window.location.search).get(
+        "redirect_path",
+      );
+      if (redirect && /^\/[^/\\]/.test(redirect)) {
+        window.location.assign(redirect);
+        return;
+      }
       onLoggedIn();
     } else {
       setError(result.error);

@@ -37,6 +37,7 @@ function buildDoc() {
     items: readCollection(COLLECTIONS.items),
     products: readCollection(COLLECTIONS.products),
     invites: readCollection(COLLECTIONS.invites),
+    tags: readCollection(COLLECTIONS.tags),
   };
 }
 

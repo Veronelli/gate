@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useReducer, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import {
   getCurrentUser,
   getSession,
@@ -8,7 +9,7 @@ import {
   setActivePlace,
 } from "@/lib/auth";
 import { getSuggestedItems } from "@/lib/consumption";
-import { createList, listPlaceLists } from "@/lib/lists";
+import { createList, listPlaceLists, listUserTags } from "@/lib/lists";
 import {
   canWritePlace,
   createPlace,
@@ -22,22 +23,46 @@ import {
 } from "@/lib/places";
 import {
   deleteProduct,
-  listPlaceProducts,
   updateProductVariables,
 } from "@/lib/products";
-import { STATE_LABELS, ListDetail } from "./ListDetail";
+import { STATE_LABELS, IMPORTANCE_LABELS, ListDetail } from "./ListDetail";
 import { SuggestedPrice } from "./SuggestedPrice";
+import { TagPicker } from "./TagPicker";
+import { ShoppingCalendar } from "./ShoppingCalendar";
+import { NearbyMarketsMap } from "./NearbyMarketsMap";
 
-export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) {
+export function Dashboard({
+  onSessionChange,
+  initialListId,
+}: {
+  onSessionChange: () => void;
+  /** Lista a abrir apenas se monta (deep-link /listas/[id]). */
+  initialListId?: string | null;
+}) {
+  const router = useRouter();
+  const pathname = usePathname();
   const [, bump] = useReducer((x: number) => x + 1, 0);
-  const [selectedListId, setSelectedListId] = useState<string | null>(null);
+  const [selectedListId, setSelectedListId] = useState<string | null>(
+    initialListId ?? null,
+  );
   const [menuOpen, setMenuOpen] = useState(false);
   const [newPlace, setNewPlace] = useState("");
   const [newList, setNewList] = useState("");
   const [newListDesc, setNewListDesc] = useState("");
+  const [newListTags, setNewListTags] = useState<string[]>([]);
+  const [newListAt, setNewListAt] = useState("");
+  const [newListImp, setNewListImp] = useState<"alta" | "media" | "baja">(
+    "media",
+  );
   const [inviteUser, setInviteUser] = useState("");
   const [inviteRole, setInviteRole] = useState<"read" | "write">("read");
   const [error, setError] = useState<string | null>(null);
+  const [contact, setContact] = useState<{
+    phone: string;
+    telegramChatId: string | null;
+  } | null | undefined>(undefined);
+  const [phone, setPhone] = useState("");
+  const [phoneMsg, setPhoneMsg] = useState<string | null>(null);
 
   const user = getCurrentUser();
   const session = getSession();
@@ -54,6 +79,50 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
       setActivePlace(activePlaceId);
     }
   }, [activePlaceId, session]);
+
+  // Carga el contact del usuario (teléfono / Telegram) una vez por sesión.
+  useEffect(() => {
+    if (!session?.token) return;
+    fetch("/api/contacts", {
+      headers: { Authorization: `Bearer ${session.token}` },
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) =>
+        setContact(
+          (
+            d as {
+              contact?: {
+                phone: string;
+                telegramChatId: string | null;
+              } | null;
+            } | null
+          )?.contact ?? null,
+        ),
+      )
+      .catch(() => setContact(null));
+  }, [session?.token]);
+
+  async function savePhone() {
+    if (!session?.token) return;
+    const res = await fetch("/api/contacts", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.token}`,
+      },
+      body: JSON.stringify({ phone }),
+    });
+    const data = (await res.json()) as {
+      contact?: { phone: string; telegramChatId: string | null };
+      error?: string;
+    };
+    if (!res.ok || !data.contact) {
+      setPhoneMsg(data.error ?? "No se pudo guardar.");
+      return;
+    }
+    setContact(data.contact);
+    setPhoneMsg(null);
+  }
 
   if (!user || !session) {
     return (
@@ -82,10 +151,10 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
 
   const suggestions = place ? getSuggestedItems(place.id) : [];
   const placeLists = place ? listPlaceLists(place.id, user.id) : [];
-  const placeProducts = place ? listPlaceProducts(place.id, user.id) : [];
   const admin = place ? isPlaceAdmin(place.id, user.id) : false;
   const writable = place ? canWritePlace(place.id, user.id) : false;
   const members = place ? listMembers(place.id) : [];
+  const userTags = listUserTags(user.id);
 
   return (
     <main className="flex min-h-screen">
@@ -275,6 +344,60 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
         )}
 
         </div>
+        {/* Recordatorios por Telegram */}
+        <div className="border-t border-gray-700 p-4">
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+            Recordatorios
+          </h3>
+          {contact === undefined ? null : contact?.telegramChatId ? (
+            <p className="mt-2 text-xs text-green-400">
+              ✓ Telegram vinculado — te avisamos de tus compras pendientes.
+            </p>
+          ) : (
+            <>
+              {!contact?.phone ? (
+                <>
+                  <p className="mt-2 text-xs text-gray-400">
+                    Agregá tu teléfono para recibir recordatorios.
+                  </p>
+                  <div className="mt-2 flex gap-1">
+                    <input
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="+54 9 11 …"
+                      className="w-full min-w-0 rounded-lg border border-gray-600 bg-gray-700 p-1.5 text-xs text-white placeholder-gray-400 focus:border-brand focus:ring-brand/40"
+                    />
+                    <button
+                      type="button"
+                      className="shrink-0 rounded-lg bg-brand px-2 py-1 text-xs font-medium text-white hover:bg-brand-dark"
+                      onClick={() => void savePhone()}
+                    >
+                      Guardar
+                    </button>
+                  </div>
+                  {phoneMsg && (
+                    <p className="mt-1 text-xs text-red-400">{phoneMsg}</p>
+                  )}
+                </>
+              ) : (
+                <p className="mt-2 text-xs text-gray-400">
+                  📱 {contact.phone}
+                </p>
+              )}
+              {process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME && (
+                <a
+                  href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME}?start=${user.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-2 block rounded-lg border border-sky-500 px-3 py-1.5 text-center text-xs font-medium text-sky-400 hover:bg-sky-500/10"
+                >
+                  Vincular Telegram
+                </a>
+              )}
+            </>
+          )}
+        </div>
         <div className="mt-auto border-t border-gray-700 p-4">
           <button
             type="button"
@@ -304,7 +427,10 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
           <ListDetail
             listId={selectedListId}
             userId={user.id}
-            onBack={() => setSelectedListId(null)}
+            onBack={() => {
+              setSelectedListId(null);
+              if (pathname.startsWith("/listas/")) router.replace("/");
+            }}
             onChanged={bump}
           />
         ) : (
@@ -353,6 +479,36 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
                       value={newListDesc}
                       onChange={(e) => setNewListDesc(e.target.value)}
                     />
+                    <TagPicker
+                      tags={newListTags}
+                      suggestions={userTags}
+                      onChange={setNewListTags}
+                    />
+                    <label className="block text-xs text-gray-500">
+                      Programar para
+                      <input
+                        type="datetime-local"
+                        className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-brand focus:ring-brand/40"
+                        value={newListAt}
+                        onChange={(e) => setNewListAt(e.target.value)}
+                      />
+                    </label>
+                    <label className="block text-xs text-gray-500">
+                      Importancia
+                      <select
+                        className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-brand focus:ring-brand/40"
+                        value={newListImp}
+                        onChange={(e) =>
+                          setNewListImp(
+                            e.target.value as "alta" | "media" | "baja",
+                          )
+                        }
+                      >
+                        <option value="alta">Alta</option>
+                        <option value="media">Media</option>
+                        <option value="baja">Baja</option>
+                      </select>
+                    </label>
                     <button
                       type="button"
                       className="rounded-lg bg-brand px-5 py-2.5 text-sm font-medium text-white hover:bg-brand-dark focus:outline-none focus:ring-4 focus:ring-brand/30"
@@ -362,11 +518,21 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
                           user.id,
                           newList,
                           newListDesc,
+                          {
+                            tags: newListTags,
+                            scheduledAt: newListAt
+                              ? new Date(newListAt).toISOString()
+                              : null,
+                            importance: newListImp,
+                          },
                         );
                         showError(r);
                         if (r.ok) {
                           setNewList("");
                           setNewListDesc("");
+                          setNewListTags([]);
+                          setNewListAt("");
+                          setNewListImp("media");
                         }
                         bump();
                       }}
@@ -397,9 +563,48 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
                               {l.description}
                             </span>
                           )}
+                          {((l.tags ?? []).length > 0 || l.scheduledAt) && (
+                            <span className="mt-1 flex flex-wrap items-center gap-1.5">
+                              {(l.tags ?? []).map((t) => (
+                                <span
+                                  key={t}
+                                  className="rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-600"
+                                >
+                                  {t}
+                                </span>
+                              ))}
+                              {l.scheduledAt && (
+                                <span className="text-xs text-brand-dark">
+                                  📅{" "}
+                                  {new Date(l.scheduledAt).toLocaleString(
+                                    "es-AR",
+                                    {
+                                      day: "2-digit",
+                                      month: "2-digit",
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    },
+                                  )}
+                                </span>
+                              )}
+                            </span>
+                          )}
                         </span>
-                        <span className="rounded-full bg-brand/15 px-3 py-1 text-xs font-medium text-brand-dark">
-                          {STATE_LABELS[l.state]}
+                        <span className="flex flex-col items-end gap-1">
+                          <span className="rounded-full bg-brand/15 px-3 py-1 text-xs font-medium text-brand-dark">
+                            {STATE_LABELS[l.state]}
+                          </span>
+                          <span
+                            className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                              (l.importance ?? "media") === "alta"
+                                ? "bg-red-100 text-red-700"
+                                : (l.importance ?? "media") === "baja"
+                                  ? "bg-gray-200 text-gray-600"
+                                  : "bg-amber-100 text-amber-700"
+                            }`}
+                          >
+                            {IMPORTANCE_LABELS[l.importance ?? "media"]}
+                          </span>
                         </span>
                       </button>
                     </li>
@@ -409,7 +614,29 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
 
               {/* Items a considerar */}
               <section>
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+                      Calendario de compras
+                    </h3>
+                    <div className="mt-2">
+                      <ShoppingCalendar
+                        lists={placeLists}
+                        onPick={setSelectedListId}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+                      Supermercados cercanos
+                    </h3>
+                    <div className="mt-2">
+                      <NearbyMarketsMap />
+                    </div>
+                  </div>
+                </div>
+
+                <h3 className="mt-6 text-sm font-semibold uppercase tracking-wide text-gray-500">
                   Sugerencias de compra
                 </h3>
                 <ul className="mt-2 divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white shadow-sm">
@@ -421,7 +648,7 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
                   {suggestions.map((s) => (
                     <li
                       key={s.product.id}
-                      className="flex items-center gap-3 p-3"
+                      className="flex flex-wrap items-center gap-3 p-3"
                     >
                       {s.product.imageUrl && (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -431,48 +658,22 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
                           className="h-8 w-8 rounded object-contain"
                         />
                       )}
-                      <div className="flex-1">
+                      <div className="min-w-40 flex-1">
                         <p className="text-sm font-medium">{s.product.name}</p>
                         <p className="text-xs text-gray-500">
                           {Math.round(s.unitsRemaining) <= 0
                             ? "No tenés"
                             : `Quedan ~${Math.ceil(s.daysRemaining)} días · ~${Math.max(0, Math.round(s.unitsRemaining))} uds.`}
+                          {s.product.brand ? ` · ${s.product.brand}` : ""}
                         </p>
+                        <div className="mt-1 h-2 w-full overflow-hidden rounded bg-gray-200">
+                          <div
+                            className="h-full bg-brand"
+                            style={{ width: `${Math.round(s.score * 100)}%` }}
+                          />
+                        </div>
                       </div>
-                      <div className="h-2 w-16 overflow-hidden rounded bg-gray-200">
-                        <div
-                          className="h-full bg-brand"
-                          style={{ width: `${Math.round(s.score * 100)}%` }}
-                        />
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            </div>
-
-            {/* Productos del lugar */}
-            {placeProducts.length > 0 && (
-              <section className="mt-8">
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
-                  Productos del lugar
-                </h3>
-                <ul className="mt-2 divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white shadow-sm">
-                  {placeProducts.map((p) => (
-                    <li key={p.id} className="flex flex-wrap items-center gap-3 p-3">
-                      {p.imageUrl && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={p.imageUrl}
-                          alt=""
-                          className="h-8 w-8 rounded object-contain"
-                        />
-                      )}
-                      <div className="min-w-40 flex-1">
-                        <p className="text-sm font-medium">{p.name}</p>
-                        <p className="text-xs text-gray-500">{p.brand}</p>
-                      </div>
-                      <SuggestedPrice price={p.suggestedPrice} />
+                      <SuggestedPrice price={s.product.suggestedPrice} />
                       {writable && (
                         <>
                           <label className="text-xs text-gray-500">
@@ -481,15 +682,15 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
                               type="number"
                               min={0}
                               className="ml-1 w-16 rounded-lg border border-gray-300 bg-gray-50 p-1.5 text-xs text-gray-900 focus:border-brand focus:ring-brand/40"
-                              defaultValue={p.unitsRemaining}
+                              defaultValue={s.product.unitsRemaining}
                               onBlur={(e) => {
                                 const v = Number(e.target.value);
-                                if (v >= 0 && v !== p.unitsRemaining) {
+                                if (v >= 0 && v !== s.product.unitsRemaining) {
                                   showError(
                                     updateProductVariables(
                                       place.id,
                                       user.id,
-                                      p.id,
+                                      s.product.id,
                                       { unitsRemaining: v },
                                     ),
                                   );
@@ -504,15 +705,15 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
                               type="number"
                               min={1}
                               className="ml-1 w-16 rounded-lg border border-gray-300 bg-gray-50 p-1.5 text-xs text-gray-900 focus:border-brand focus:ring-brand/40"
-                              defaultValue={p.refreshDays}
+                              defaultValue={s.product.refreshDays}
                               onBlur={(e) => {
                                 const v = Number(e.target.value);
-                                if (v > 0 && v !== p.refreshDays) {
+                                if (v > 0 && v !== s.product.refreshDays) {
                                   showError(
                                     updateProductVariables(
                                       place.id,
                                       user.id,
-                                      p.id,
+                                      s.product.id,
                                       { refreshDays: v },
                                     ),
                                   );
@@ -527,11 +728,15 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
                             onClick={() => {
                               if (
                                 window.confirm(
-                                  `¿Eliminar "${p.name}" del lugar?`,
+                                  `¿Eliminar "${s.product.name}" del lugar?`,
                                 )
                               ) {
                                 showError(
-                                  deleteProduct(place.id, user.id, p.id),
+                                  deleteProduct(
+                                    place.id,
+                                    user.id,
+                                    s.product.id,
+                                  ),
                                 );
                                 bump();
                               }
@@ -545,7 +750,7 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
                   ))}
                 </ul>
               </section>
-            )}
+            </div>
           </>
         )}
           </>
