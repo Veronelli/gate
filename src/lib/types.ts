@@ -5,8 +5,9 @@ export type ListState = "listando" | "a_comprar" | "comprando" | "listo";
 export interface User {
   id: string;
   username: string;
-  passwordHash: string;
-  salt: string;
+  /** Solo existe en el servidor (SQLite); el cliente guarda registros sin secretos. */
+  passwordHash?: string;
+  salt?: string;
   createdAt: string;
 }
 
@@ -81,6 +82,8 @@ export interface ListInvite {
 
 export interface Session {
   userId: string;
+  /** Token bearer emitido por el servidor para autenticar las requests. */
+  token: string;
   placeId: string | null;
   startedAt: string;
 }
