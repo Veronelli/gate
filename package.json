@@ -12,6 +12,7 @@
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {
+    "drizzle-orm": "^0.45.3",
     "flowbite": "^3.1.2",
     "next": "^15.2.8",
     "react": "^19.0.1",
@@ -25,10 +26,13 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "better-sqlite3": "^13.0.3",
+    "drizzle-kit": "^0.31.11",
     "eslint": "^9",
     "eslint-config-next": "^15.2.8",
     "postcss-import": "^16.1.0",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5",
     "wrangler": "^4.11.1"
   }

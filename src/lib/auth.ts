@@ -1,40 +1,26 @@
 import {
   COLLECTIONS,
   SESSION_KEY,
-  ensureSchema,
   getJSON,
   readCollection,
   removeKey,
   setJSON,
   updateCollection,
 } from "./storage";
+import { hydrateFromServer } from "./sync";
 import type { Session, User } from "./types";
 
-export type AuthResult = { ok: true; user: User } | { ok: false; error: string };
+export type AuthResult =
+  | { ok: true; user: Pick<User, "id" | "username"> }
+  | { ok: false; error: string };
 
 export interface LocalAccount {
   id: string;
   username: string;
 }
 
-const normalize = (username: string) => username.trim().toLowerCase();
-
 function fail(error: string): AuthResult {
   return { ok: false, error };
-}
-
-function randomHex(bytes: number): string {
-  return [...crypto.getRandomValues(new Uint8Array(bytes))]
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
-
-async function hashPassword(password: string, salt: string): Promise<string> {
-  const data = new TextEncoder().encode(`${salt}:${password}`);
-  const digest = await crypto.subtle.digest("SHA-256", data);
-  return [...new Uint8Array(digest)]
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
 }
 
 export function listLocalAccounts(): LocalAccount[] {
@@ -44,50 +30,75 @@ export function listLocalAccounts(): LocalAccount[] {
   }));
 }
 
-export async function register(
-  username: string,
-  password: string,
-  repeatPassword: string,
-): Promise<AuthResult> {
-  ensureSchema();
-  const name = username.trim();
-  if (!name || !password) return fail("Completá usuario y contraseña.");
-  if (password !== repeatPassword) return fail("Las contraseñas no coinciden.");
-  const users = readCollection<User>(COLLECTIONS.users);
-  if (users.some((u) => normalize(u.username) === normalize(name))) {
-    return fail("El usuario ya existe.");
-  }
-  const salt = randomHex(16);
-  const user: User = {
-    id: crypto.randomUUID(),
-    username: name,
-    passwordHash: await hashPassword(password, salt),
-    salt,
-    createdAt: new Date().toISOString(),
-  };
-  updateCollection<User>(COLLECTIONS.users, (items) => [...items, user]);
-  return { ok: true, user };
+interface AuthResponse {
+  token?: string;
+  user?: { id: string; username: string };
+  error?: string;
 }
 
-export async function login(
-  username: string,
-  password: string,
-): Promise<AuthResult> {
-  const user = readCollection<User>(COLLECTIONS.users).find(
-    (u) => normalize(u.username) === normalize(username),
-  );
-  const invalid = fail("Usuario o contraseña incorrectos.");
-  if (!user) return invalid;
-  if ((await hashPassword(password, user.salt)) !== user.passwordHash) {
-    return invalid;
-  }
+function startSession(token: string, user: { id: string; username: string }) {
   const session: Session = {
     userId: user.id,
+    token,
     placeId: null,
     startedAt: new Date().toISOString(),
   };
   setJSON(SESSION_KEY, session);
-  return { ok: true, user };
+  // Registro display-only (sin secretos) para mostrar miembros/invitados.
+  updateCollection<User>(COLLECTIONS.users, (items) =>
+    items.some((u) => u.id === user.id)
+      ? items
+      : [
+          ...items,
+          { id: user.id, username: user.username, createdAt: session.startedAt },
+        ],
+  );
+}
+
+async function callAuth(
+  path: string,
+  body: Record<string, string>,
+): Promise<AuthResult> {
+  let res: Response;
+  try {
+    res = await fetch(`/api/auth/${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  } catch {
+    return fail("No se pudo conectar con el servidor. Intentá de nuevo.");
+  }
+  const data = (await res.json()) as AuthResponse;
+  if (!res.ok || !data.token || !data.user) {
+    return fail(data.error ?? "Ocurrió un error. Intentá de nuevo.");
+  }
+  startSession(data.token, data.user);
+  await hydrateFromServer();
+  return { ok: true, user: data.user };
+}
+
+export function register(
+  username: string,
+  password: string,
+  repeatPassword: string,
+): Promise<AuthResult> {
+  const name = username.trim();
+  if (!name || !password) {
+    return Promise.resolve(fail("Completá usuario y contraseña."));
+  }
+  return callAuth("register", {
+    username: name,
+    password,
+    repeatPassword,
+  });
+}
+
+export function login(
+  username: string,
+  password: string,
+): Promise<AuthResult> {
+  return callAuth("login", { username, password });
 }
 
 export function getSession(): Session | null {
@@ -110,5 +121,12 @@ export function setActivePlace(placeId: string | null): void {
 }
 
 export function logout(): void {
+  const session = getSession();
+  if (session?.token) {
+    void fetch("/api/auth/logout", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${session.token}` },
+    }).catch(() => {});
+  }
   removeKey(SESSION_KEY);
 }

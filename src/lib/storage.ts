@@ -62,8 +62,15 @@ export function readCollection<T>(name: string): T[] {
   return getJSON<T[]>(storageKey(name), []);
 }
 
+/** Hook invocado tras cada escritura de colección (sync lo usa para pushear). */
+let onWrite: (() => void) | null = null;
+export function onCollectionsWritten(fn: () => void): void {
+  onWrite = fn;
+}
+
 export function writeCollection<T>(name: string, items: T[]): void {
   setJSON(storageKey(name), items);
+  onWrite?.();
 }
 
 export function updateCollection<T>(

@@ -18,7 +18,6 @@ import {
   listUserPlaces,
   removeMember,
   setMemberRole,
-  updateConsumptionConfig,
   getPlace,
 } from "@/lib/places";
 import {
@@ -55,7 +54,27 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
     }
   }, [activePlaceId, session]);
 
-  if (!user || !session) return null;
+  if (!user || !session) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-gray-100">
+        <div className="rounded-lg border border-gray-200 bg-white p-6 text-center shadow-sm">
+          <p className="text-sm text-gray-600">
+            No pudimos cargar tu sesión.
+          </p>
+          <button
+            type="button"
+            className="mt-4 rounded-lg bg-brand px-5 py-2 text-sm font-medium text-white hover:bg-brand-dark"
+            onClick={() => {
+              logout();
+              onSessionChange();
+            }}
+          >
+            Volver a iniciar sesión
+          </button>
+        </div>
+      </main>
+    );
+  }
 
   const showError = (r: { ok: boolean; error?: string }) =>
     setError(r.ok ? null : (r.error ?? "Ocurrió un error."));
@@ -72,7 +91,15 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
       {/* Sidebar: lugares y administración */}
       <aside className="w-72 shrink-0 border-r border-gray-700 bg-gray-800 text-gray-200">
         <div className="bg-brand px-4 py-3 text-white">
-          <h1 className="font-brand text-xl">food2check</h1>
+          <div className="flex items-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo.png"
+              alt="food2check"
+              className="mr-2 h-7 w-auto"
+            />
+            <h1 className="font-brand text-xl">food2check</h1>
+          </div>
           <p className="mt-1 text-xs text-white/80">Hola, {user.username}</p>
         </div>
         <div className="p-4">
@@ -95,6 +122,14 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
             </li>
           ))}
         </ul>
+        {myPlaces.length === 0 && (
+          <p className="mt-3 flex items-center gap-2 rounded-lg border border-brand/50 bg-brand/10 px-3 py-2 text-xs font-medium text-white">
+            Empezá creando tu primer lugar acá
+            <span className="animate-bounce text-lg leading-none text-brand-light">
+              ↓
+            </span>
+          </p>
+        )}
         <div className="mt-2 flex gap-1">
           <input
             className="block w-full rounded-lg border border-gray-600 bg-gray-700 p-2.5 text-sm text-white placeholder-gray-400 focus:border-brand focus:ring-brand/40"
@@ -213,38 +248,6 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
               </button>
             </div>
 
-            <h2 className="mt-6 text-sm font-semibold text-white">
-              Variables de consumo
-            </h2>
-            <div className="mt-2 space-y-2 text-sm">
-              {(
-                [
-                  ["defaultRefreshDays", "Refresco por defecto (días)"],
-                  ["reminderThresholdDays", "Avisar cuando queden (días)"],
-                ] as const
-              ).map(([field, label]) => (
-                <label key={field} className="flex flex-col gap-1 text-xs">
-                  {label}
-                  <input
-                    type="number"
-                    min={1}
-                    className="block w-full rounded-lg border border-gray-600 bg-gray-700 p-2 text-xs text-white focus:border-brand focus:ring-brand/40"
-                    defaultValue={place.consumptionConfig[field]}
-                    onBlur={(e) => {
-                      const v = Number(e.target.value);
-                      if (v > 0) {
-                        showError(
-                          updateConsumptionConfig(place.id, user.id, {
-                            [field]: v,
-                          }),
-                        );
-                        bump();
-                      }
-                    }}
-                  />
-                </label>
-              ))}
-            </div>
           </>
         )}
 
@@ -291,8 +294,22 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
                 <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
                   Listas de compras
                 </h3>
+                {writable && placeLists.length === 0 && (
+                  <p className="mt-3 flex items-center justify-center gap-2 rounded-lg border-2 border-dashed border-brand bg-brand/10 px-4 py-3 text-sm font-semibold text-brand-dark">
+                    Creá tu primera lista acá
+                    <span className="animate-bounce text-2xl leading-none">
+                      ↓
+                    </span>
+                  </p>
+                )}
                 {writable && (
-                  <div className="mt-2 space-y-2 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+                  <div
+                    className={`mt-2 space-y-2 rounded-lg border bg-white p-4 shadow-sm ${
+                      placeLists.length === 0
+                        ? "border-brand ring-2 ring-brand/40"
+                        : "border-gray-200"
+                    }`}
+                  >
                     <input
                       className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-brand focus:ring-brand/40"
                       placeholder="Nombre de la lista"
@@ -362,7 +379,7 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
               {/* Items a considerar */}
               <section>
                 <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
-                  A considerar para comprar
+                  Sugerencias de compra
                 </h3>
                 <ul className="mt-2 divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white shadow-sm">
                   {suggestions.length === 0 && (
@@ -386,8 +403,9 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
                       <div className="flex-1">
                         <p className="text-sm font-medium">{s.product.name}</p>
                         <p className="text-xs text-gray-500">
-                          Quedan ~{Math.ceil(s.daysRemaining)} días · ~
-                          {Math.max(0, Math.round(s.unitsRemaining))} uds.
+                          {Math.round(s.unitsRemaining) <= 0
+                            ? "No tenés"
+                            : `Quedan ~${Math.ceil(s.daysRemaining)} días · ~${Math.max(0, Math.round(s.unitsRemaining))} uds.`}
                         </p>
                       </div>
                       <div className="h-2 w-16 overflow-hidden rounded bg-gray-200">

@@ -19,10 +19,10 @@ const LATERAL_IMAGES = [
 const SLIDE_MS = 4000;
 
 const FEATURES = [
-  "Registrá tus compras.",
-  "Compartí tu listado de compras con algún familiar.",
-  "Agregá permisos a los invitados.",
-  "Tené un paneo general de las sugerencias de qué debés comprar.",
+  "Registrá tus compras del supermercado.",
+  "Compartí tu listado de compras con tu familia.",
+  "Agregá permisos a los invitados de tu hogar.",
+  "Tené un paneo general de lo que tenés que comprar.",
   "Fácil de usar y registrar.",
 ];
 const FEATURE_MS = 3500;
@@ -131,6 +131,12 @@ export function AuthScreen({ onLoggedIn }: { onLoggedIn: () => void }) {
       {/* Navbar a lo ancho de la página */}
       <nav className="border-b border-brand-dark bg-brand">
         <div className="mx-auto flex max-w-7xl items-center px-6 py-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo.png"
+            alt="food2check"
+            className="mr-3 h-12 w-auto"
+          />
           <h1 className="font-brand text-[50px] leading-tight text-white">
             food2check
           </h1>

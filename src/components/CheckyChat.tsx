@@ -10,23 +10,27 @@ interface QA {
 const FAQ: QA[] = [
   {
     q: "¿Qué es food2check?",
-    a: "Una app para organizar tus listas de compras por lugar (hogar, oficina, etc.), compartirlas con tu familia y recibir sugerencias de qué comprar según tu consumo.",
+    a: "Una app pensada para las compras del supermercado de tu hogar: armás listas, las compartís con tu familia y te sugiere qué comprar según lo que se va consumiendo.",
   },
   {
     q: "¿Cómo creo una cuenta?",
     a: "En la pantalla de inicio tocá “Crear una cuenta local” y completá usuario, contraseña y repetir contraseña. El nombre de usuario es único en este navegador.",
   },
   {
+    q: "¿Por dónde empiezo?",
+    a: "Primero creá un lugar: una flecha te señala el campo “Nuevo lugar…” en el panel lateral. Después, otra flecha te guía para crear tu primera lista de compras. Con eso ya podés invitar a tu familia y agregar productos.",
+  },
+  {
     q: "¿Qué es un lugar?",
-    a: "Un espacio de trabajo (como tu casa) que agrupa listas de compras, productos y miembros. Cada lugar tiene su propia configuración de consumo.",
+    a: "Tu hogar (o el espacio para el que comprás): agrupa las listas de compras, los productos y los miembros de la familia. Cada lugar tiene su propia configuración de consumo.",
   },
   {
     q: "¿Cómo creo un lugar?",
     a: "En el panel lateral, escribí el nombre en “Nuevo lugar…” y tocá +. Quedás como administrador y podés invitar a otras personas.",
   },
   {
-    q: "¿Cómo invito a alguien a mi lugar?",
-    a: "En “Miembros” del panel lateral escribí el nombre de usuario de la persona y elegí el permiso: Lectura o Escritura. La persona debe tener una cuenta registrada en este navegador.",
+    q: "¿Cómo invito a alguien a mi hogar?",
+    a: "En “Miembros” del panel lateral escribí el nombre de usuario de tu familiar y elegí el permiso: Lectura o Escritura. La persona debe tener una cuenta registrada en este navegador.",
   },
   {
     q: "¿Cómo creo una lista de compras?",
@@ -34,19 +38,27 @@ const FAQ: QA[] = [
   },
   {
     q: "¿Cómo agrego productos a una lista?",
-    a: "Abrí la lista y usá el buscador: se consulta el catálogo de referencia de Día y el producto se agrega con imagen, marca y precio sugerido.",
+    a: "Abrí la lista y usá el buscador: se consulta el catálogo del supermercado Día como referencia y el producto se agrega con imagen, marca y precio sugerido.",
   },
   {
     q: "¿Qué significa el precio sugerido?",
-    a: "Es un precio de referencia tomado del catálogo de Día. No es necesariamente el precio del comercio donde vos comprás.",
+    a: "Es un precio de referencia del supermercado Día. No es necesariamente el precio del comercio donde vos comprás.",
   },
   {
     q: "¿Cómo funcionan los estados de una lista?",
     a: "Listando → A comprar → Comprando → Listo. Al pasar a “Listo” se actualizan las raciones de cada producto y se registra el plazo de consumo.",
   },
   {
-    q: "¿Qué es “A considerar para comprar”?",
+    q: "¿Qué es “Sugerencias de compra”?",
     a: "Son los productos del lugar ordenados por consumo estimado. Las raciones se descuentan solas con el paso del tiempo, así los más urgentes aparecen primero.",
+  },
+  {
+    q: "¿Qué significan las barras de las sugerencias?",
+    a: "La barra junto a cada producto muestra qué tan urgente es reponerlo: vacía significa que acabás de comprarlo; a medida que pasa el tiempo y se consumen las raciones, la barra se llena. Cuando está casi llena, es probable que necesites comprarlo pronto.",
+  },
+  {
+    q: "¿Cómo calcula las sugerencias?",
+    a: "food2check aprende el ritmo real de consumo: cada vez que una lista pasa a “Listo”, guarda el plazo entre compras (máximo 3 por producto). Con ese promedio y las raciones que quedan estima cuántos días te duran; por eso cada producto muestra “Quedan ~X días”.",
   },
   {
     q: "¿Qué son las raciones y el refresco?",
@@ -54,7 +66,7 @@ const FAQ: QA[] = [
   },
   {
     q: "¿Puedo compartir una lista?",
-    a: "Sí. Dentro de la lista, en “Invitados”, elegí un miembro del lugar: entra con solo lectura y podés otorgarle permiso de edición.",
+    a: "Sí. Dentro de la lista, en “Invitados”, elegí un miembro del hogar: entra con solo lectura y podés otorgarle permiso de edición.",
   },
   {
     q: "¿Cómo elimino un producto del lugar?",
@@ -66,7 +78,7 @@ const FAQ: QA[] = [
   },
   {
     q: "¿Dónde se guardan mis datos?",
-    a: "Todo se guarda en el almacenamiento local de este navegador (localStorage). Las cuentas y datos existen solo en este dispositivo.",
+    a: "Los datos se guardan en la base SQLite del servidor, así que podés compartir lugares y listas con tu familia aunque usen otro dispositivo. El navegador solo guarda una copia local para trabajar rápido.",
   },
 ];
 
