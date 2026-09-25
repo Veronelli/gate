@@ -17,10 +17,10 @@
 
 ## 4. Listas de compras e invitados
 
-- [ ] 4.1 Implementar creación de listas (nombre + descripción opcional, estado inicial `listando`) solo para miembros con escritura, verificando el rechazo para `read`
-- [ ] 4.2 Implementar máquina de estados `listando → a_comprar → comprando → listo` y verificar que el cambio de estado persiste y se muestra
-- [ ] 4.3 Implementar items con snapshot (id, nombre, marca, imagen, precio sugerido, unidades al momento de agregar) y verificar que el snapshot no cambia si el producto se actualiza
-- [ ] 4.4 Implementar sección de invitados de la lista (agregar cuenta del navegador como `read`, otorgar `edit`) y verificar que `read` no edita y `edit` sí
+- [x] 4.1 Implementar creación de listas (nombre + descripción opcional, estado inicial `listando`) solo para miembros con escritura, verificando el rechazo para `read`
+- [x] 4.2 Implementar máquina de estados `listando → a_comprar → comprando → listo` y verificar que el cambio de estado persiste y se muestra
+- [x] 4.3 Implementar items con snapshot (id, nombre, marca, imagen, precio sugerido, unidades al momento de agregar) y verificar que el snapshot no cambia si el producto se actualiza
+- [x] 4.4 Implementar sección de invitados de la lista (agregar cuenta del navegador como `read`, otorgar `edit`) y verificar que `read` no edita y `edit` sí
 
 ## 5. Catálogo e integración Coto
 
