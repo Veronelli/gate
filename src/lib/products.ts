@@ -1,6 +1,6 @@
 import { canWritePlace, getPlace, getPlaceRole } from "./places";
 import { COLLECTIONS, readCollection, updateCollection } from "./storage";
-import type { CotoProduct } from "./coto";
+import type { CatalogProduct } from "./dia";
 import type { Product } from "./types";
 
 export type ProductsResult<T> =
@@ -39,7 +39,7 @@ export function listPlaceProducts(
 export function addProductFromSearch(
   placeId: string,
   byUserId: string,
-  result: CotoProduct,
+  result: CatalogProduct,
   options?: { refreshDays?: number; unitsRemaining?: number },
 ): ProductsResult<Product> {
   const place = getPlace(placeId);

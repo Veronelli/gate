@@ -22,7 +22,7 @@ import {
 } from "@/lib/lists";
 import type { ListState } from "@/lib/types";
 import { addProductFromSearch } from "@/lib/products";
-import type { CotoProduct } from "@/lib/coto";
+import type { CatalogProduct } from "@/lib/dia";
 import { ProductSearch } from "./ProductSearch";
 import { SuggestedPrice } from "./SuggestedPrice";
 
@@ -86,7 +86,7 @@ export function ListDetail({
     setError(result.ok ? null : (result.error ?? "Ocurrió un error."));
   }
 
-  function handlePick(product: CotoProduct) {
+  function handlePick(product: CatalogProduct) {
     const added = addProductFromSearch(list!.placeId, userId, product);
     if (!added.ok) return showError(added);
     showError(
@@ -110,13 +110,13 @@ export function ListDetail({
 
       <header className="mt-4 flex flex-wrap items-center gap-3">
         <h2 className="text-2xl font-semibold">{list.name}</h2>
-        <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-800">
+        <span className="rounded-full bg-brand/15 px-3 py-1 text-xs font-medium text-brand-dark">
           {STATE_LABELS[list.state]}
         </span>
         {editable && nextState && (
           <button
             type="button"
-            className="rounded-lg bg-emerald-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-800 focus:outline-none focus:ring-4 focus:ring-emerald-300"
+            className="rounded-lg bg-brand px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-dark focus:outline-none focus:ring-4 focus:ring-brand/30"
             onClick={() => {
               showError(advanceListState(listId, userId));
               onChanged();
@@ -177,7 +177,7 @@ export function ListDetail({
               <input
                 type="number"
                 min={1}
-                className="w-16 rounded-lg border border-gray-300 bg-gray-50 p-1.5 text-sm text-gray-900 focus:border-emerald-500 focus:ring-emerald-500"
+                className="w-16 rounded-lg border border-gray-300 bg-gray-50 p-1.5 text-sm text-gray-900 focus:border-brand focus:ring-brand/40"
                 value={item.units}
                 onChange={(e) => {
                   const units = Number(e.target.value);
@@ -224,7 +224,7 @@ export function ListDetail({
                 <span>{accounts.get(inv.userId) ?? inv.userId}</span>
                 <span className="flex items-center gap-2">
                   <select
-                    className="rounded-lg border border-gray-300 bg-gray-50 px-2 py-1 text-xs text-gray-900 focus:border-emerald-500 focus:ring-emerald-500"
+                    className="rounded-lg border border-gray-300 bg-gray-50 px-2 py-1 text-xs text-gray-900 focus:border-brand focus:ring-brand/40"
                     value={inv.permission}
                     onChange={(e) => {
                       showError(
@@ -258,7 +258,7 @@ export function ListDetail({
           {invitable.length > 0 && (
             <div className="mt-2 flex gap-2">
               <select
-                className="flex-1 rounded-lg border border-gray-300 bg-gray-50 px-2 py-1.5 text-sm text-gray-900 focus:border-emerald-500 focus:ring-emerald-500"
+                className="flex-1 rounded-lg border border-gray-300 bg-gray-50 px-2 py-1.5 text-sm text-gray-900 focus:border-brand focus:ring-brand/40"
                 value={inviteTarget}
                 onChange={(e) => setInviteTarget(e.target.value)}
               >
@@ -271,7 +271,7 @@ export function ListDetail({
               </select>
               <button
                 type="button"
-                className="rounded-lg bg-emerald-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-800 focus:outline-none focus:ring-4 focus:ring-emerald-300"
+                className="rounded-lg bg-brand px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-dark focus:outline-none focus:ring-4 focus:ring-brand/30"
                 onClick={() => {
                   if (!inviteTarget) return;
                   showError(inviteToList(listId, userId, inviteTarget));

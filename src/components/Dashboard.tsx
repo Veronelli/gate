@@ -87,7 +87,7 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
     <main className="flex min-h-screen">
       {/* Sidebar: lugares y administración */}
       <aside className="w-72 shrink-0 border-r bg-white p-4">
-        <h1 className="text-xl font-bold text-emerald-700">food2check</h1>
+        <h1 className="text-xl font-bold text-brand">food2check</h1>
         <p className="mt-1 text-xs text-gray-500">Hola, {user.username}</p>
 
         <h2 className="mt-6 text-sm font-semibold">Mis lugares</h2>
@@ -99,7 +99,7 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
                 onClick={() => setActivePlace(p.id)}
                 className={`w-full rounded-lg px-3 py-2 text-left text-sm ${
                   p.id === activePlaceId
-                    ? "bg-emerald-100 font-medium text-emerald-900"
+                    ? "bg-brand/15 font-medium text-brand-dark"
                     : "hover:bg-gray-100"
                 }`}
               >
@@ -111,14 +111,14 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
         </ul>
         <div className="mt-2 flex gap-1">
           <input
-            className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-emerald-500 focus:ring-emerald-500"
+            className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-brand focus:ring-brand/40"
             placeholder="Nuevo lugar…"
             value={newPlace}
             onChange={(e) => setNewPlace(e.target.value)}
           />
           <button
             type="button"
-            className="rounded-lg bg-emerald-700 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-800 focus:outline-none focus:ring-4 focus:ring-emerald-300"
+            className="rounded-lg bg-brand px-3 py-2 text-sm font-medium text-white hover:bg-brand-dark focus:outline-none focus:ring-4 focus:ring-brand/30"
             onClick={() => {
               const r = createPlace(user.id, newPlace);
               showError(r);
@@ -154,7 +154,7 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
                   ) : (
                     <span className="flex items-center gap-1">
                       <select
-                        className="rounded-lg border border-gray-300 bg-gray-50 px-1.5 py-0.5 text-xs text-gray-900 focus:border-emerald-500 focus:ring-emerald-500"
+                        className="rounded-lg border border-gray-300 bg-gray-50 px-1.5 py-0.5 text-xs text-gray-900 focus:border-brand focus:ring-brand/40"
                         value={m.role}
                         onChange={(e) => {
                           showError(
@@ -192,7 +192,7 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
             {invitableAccounts.length > 0 && (
               <div className="mt-2 flex gap-1">
                 <select
-                  className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-1.5 text-xs text-gray-900 focus:border-emerald-500 focus:ring-emerald-500"
+                  className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-1.5 text-xs text-gray-900 focus:border-brand focus:ring-brand/40"
                   value={inviteUser}
                   onChange={(e) => setInviteUser(e.target.value)}
                 >
@@ -204,7 +204,7 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
                   ))}
                 </select>
                 <select
-                  className="rounded-lg border border-gray-300 bg-gray-50 px-1.5 py-1 text-xs text-gray-900 focus:border-emerald-500 focus:ring-emerald-500"
+                  className="rounded-lg border border-gray-300 bg-gray-50 px-1.5 py-1 text-xs text-gray-900 focus:border-brand focus:ring-brand/40"
                   value={inviteRole}
                   onChange={(e) =>
                     setInviteRole(e.target.value as "read" | "write")
@@ -215,7 +215,7 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
                 </select>
                 <button
                   type="button"
-                  className="rounded-lg bg-emerald-700 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-emerald-800 focus:outline-none focus:ring-4 focus:ring-emerald-300"
+                  className="rounded-lg bg-brand px-2.5 py-1.5 text-xs font-medium text-white hover:bg-brand-dark focus:outline-none focus:ring-4 focus:ring-brand/30"
                   onClick={() => {
                     if (!inviteUser) return;
                     showError(
@@ -245,7 +245,7 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
                   <input
                     type="number"
                     min={1}
-                    className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2 text-xs text-gray-900 focus:border-emerald-500 focus:ring-emerald-500"
+                    className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2 text-xs text-gray-900 focus:border-brand focus:ring-brand/40"
                     defaultValue={place.consumptionConfig[field]}
                     onBlur={(e) => {
                       const v = Number(e.target.value);
@@ -272,7 +272,7 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
             </summary>
             <div className="mt-2 space-y-1">
               <select
-                className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-1.5 text-xs text-gray-900 focus:border-emerald-500 focus:ring-emerald-500"
+                className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-1.5 text-xs text-gray-900 focus:border-brand focus:ring-brand/40"
                 value={switchUser}
                 onChange={(e) => setSwitchUser(e.target.value)}
               >
@@ -287,7 +287,7 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
               </select>
               <input
                 type="password"
-                className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-1.5 text-xs text-gray-900 focus:border-emerald-500 focus:ring-emerald-500"
+                className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-1.5 text-xs text-gray-900 focus:border-brand focus:ring-brand/40"
                 placeholder="Contraseña de esa cuenta"
                 value={switchPass}
                 onChange={(e) => setSwitchPass(e.target.value)}
@@ -353,20 +353,20 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
                 {writable && (
                   <div className="mt-2 space-y-2 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
                     <input
-                      className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-emerald-500 focus:ring-emerald-500"
+                      className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-brand focus:ring-brand/40"
                       placeholder="Nombre de la lista"
                       value={newList}
                       onChange={(e) => setNewList(e.target.value)}
                     />
                     <input
-                      className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-emerald-500 focus:ring-emerald-500"
+                      className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-brand focus:ring-brand/40"
                       placeholder="Descripción (opcional)"
                       value={newListDesc}
                       onChange={(e) => setNewListDesc(e.target.value)}
                     />
                     <button
                       type="button"
-                      className="rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-emerald-800 focus:outline-none focus:ring-4 focus:ring-emerald-300"
+                      className="rounded-lg bg-brand px-5 py-2.5 text-sm font-medium text-white hover:bg-brand-dark focus:outline-none focus:ring-4 focus:ring-brand/30"
                       onClick={() => {
                         const r = createList(
                           place.id,
@@ -409,7 +409,7 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
                             </span>
                           )}
                         </span>
-                        <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-800">
+                        <span className="rounded-full bg-brand/15 px-3 py-1 text-xs font-medium text-brand-dark">
                           {STATE_LABELS[l.state]}
                         </span>
                       </button>
@@ -451,7 +451,7 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
                       </div>
                       <div className="h-2 w-16 overflow-hidden rounded bg-gray-200">
                         <div
-                          className="h-full bg-emerald-500"
+                          className="h-full bg-brand"
                           style={{ width: `${Math.round(s.score * 100)}%` }}
                         />
                       </div>
@@ -490,7 +490,7 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
                             <input
                               type="number"
                               min={0}
-                              className="ml-1 w-16 rounded-lg border border-gray-300 bg-gray-50 p-1.5 text-xs text-gray-900 focus:border-emerald-500 focus:ring-emerald-500"
+                              className="ml-1 w-16 rounded-lg border border-gray-300 bg-gray-50 p-1.5 text-xs text-gray-900 focus:border-brand focus:ring-brand/40"
                               defaultValue={p.unitsRemaining}
                               onBlur={(e) => {
                                 const v = Number(e.target.value);
@@ -513,7 +513,7 @@ export function Dashboard({ onSessionChange }: { onSessionChange: () => void }) 
                             <input
                               type="number"
                               min={1}
-                              className="ml-1 w-16 rounded-lg border border-gray-300 bg-gray-50 p-1.5 text-xs text-gray-900 focus:border-emerald-500 focus:ring-emerald-500"
+                              className="ml-1 w-16 rounded-lg border border-gray-300 bg-gray-50 p-1.5 text-xs text-gray-900 focus:border-brand focus:ring-brand/40"
                               defaultValue={p.refreshDays}
                               onBlur={(e) => {
                                 const v = Number(e.target.value);

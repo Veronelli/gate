@@ -1,6 +1,12 @@
 @import "tailwindcss";
 @plugin "flowbite/plugin";
 
+@theme {
+  --color-brand: #e36954;
+  --color-brand-dark: #c14a36;
+  --color-brand-light: #f6bfb4;
+}
+
 @theme inline {
   --font-brand: var(--font-cal-sans);
 }

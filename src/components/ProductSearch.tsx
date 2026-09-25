@@ -1,16 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { CotoProduct, debounce, searchCoto } from "@/lib/coto";
+import { CatalogProduct, debounce, searchCatalog } from "@/lib/dia";
 import { SuggestedPrice } from "./SuggestedPrice";
 
 export function ProductSearch({
   onPick,
 }: {
-  onPick: (product: CotoProduct) => void;
+  onPick: (product: CatalogProduct) => void;
 }) {
   const [term, setTerm] = useState("");
-  const [results, setResults] = useState<CotoProduct[]>([]);
+  const [results, setResults] = useState<CatalogProduct[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [searching, setSearching] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
@@ -26,7 +26,7 @@ export function ProductSearch({
     abortRef.current = controller;
     setSearching(true);
     try {
-      const found = await searchCoto(query, controller.signal);
+      const found = await searchCatalog(query, controller.signal);
       if (!controller.signal.aborted) {
         setResults(found);
         setError(
@@ -54,8 +54,8 @@ export function ProductSearch({
   return (
     <div className="relative">
       <input
-        className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-emerald-500 focus:ring-emerald-500"
-        placeholder="Buscar producto en el catálogo…"
+        className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-brand focus:ring-brand/40"
+        placeholder="Buscar producto en Día…"
         value={term}
         onChange={(e) => {
           setTerm(e.target.value);
