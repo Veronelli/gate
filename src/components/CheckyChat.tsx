@@ -17,6 +17,10 @@ const FAQ: QA[] = [
     a: "En la pantalla de inicio tocá “Crear una cuenta local” y completá usuario, contraseña y repetir contraseña. El nombre de usuario es único en este navegador.",
   },
   {
+    q: "¿Por dónde empiezo?",
+    a: "Primero creá un lugar: una flecha te señala el campo “Nuevo lugar…” en el panel lateral. Después, otra flecha te guía para crear tu primera lista de compras. Con eso ya podés invitar a tu familia y agregar productos.",
+  },
+  {
     q: "¿Qué es un lugar?",
     a: "Tu hogar (o el espacio para el que comprás): agrupa las listas de compras, los productos y los miembros de la familia. Cada lugar tiene su propia configuración de consumo.",
   },
