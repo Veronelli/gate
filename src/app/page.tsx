@@ -2,6 +2,7 @@
 
 import { useEffect, useReducer, useState } from "react";
 import { getSession } from "@/lib/auth";
+import { hydrateFromServer } from "@/lib/sync";
 import { AuthScreen } from "@/components/AuthScreen";
 import { Dashboard } from "@/components/Dashboard";
 import { CheckyChat } from "@/components/CheckyChat";
@@ -12,7 +13,12 @@ export default function Home() {
 
   // localStorage solo existe en el cliente: leer tras el mount evita
   // diferencias de hidratación entre SSR y el primer render del cliente.
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    setMounted(true);
+    if (getSession()?.token) {
+      void hydrateFromServer().then(bump);
+    }
+  }, []);
 
   if (!mounted) {
     return (
