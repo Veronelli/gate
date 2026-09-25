@@ -1,6 +1,6 @@
 import { canWritePlace, getPlace, getPlaceRole } from "./places";
 import { COLLECTIONS, readCollection, updateCollection } from "./storage";
-import type { CatalogProduct } from "./dia";
+import type { CatalogProduct } from "./catalog";
 import type { Product } from "./types";
 
 export type ProductsResult<T> =

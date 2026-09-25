@@ -22,7 +22,7 @@ import {
 } from "@/lib/lists";
 import type { ListState } from "@/lib/types";
 import { addProductFromSearch } from "@/lib/products";
-import type { CatalogProduct } from "@/lib/dia";
+import type { CatalogProduct } from "@/lib/catalog";
 import { ProductSearch } from "./ProductSearch";
 import { SuggestedPrice } from "./SuggestedPrice";
 

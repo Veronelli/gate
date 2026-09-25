@@ -26,7 +26,6 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "better-sqlite3": "^13.0.3",
     "drizzle-kit": "^0.31.11",
     "eslint": "^9",
     "eslint-config-next": "^15.2.8",
