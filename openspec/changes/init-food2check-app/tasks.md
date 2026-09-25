@@ -11,9 +11,9 @@
 
 ## 3. Places y membresías
 
-- [ ] 3.1 Implementar creación de place (creador queda `admin`) y listado de places del usuario, verificando que el place aparece tras crearlo
-- [ ] 3.2 Implementar invitación de cuentas del navegador con rol `read`/`write` y cambio de rol posterior, verificando que un invitado `read` no puede crear contenido y `write` sí
-- [ ] 3.3 Implementar `consumptionConfig` por place (`defaultRefreshDays`, `reminderThresholdDays`) y verificar que es independiente entre places
+- [x] 3.1 Implementar creación de place (creador queda `admin`) y listado de places del usuario, verificando que el place aparece tras crearlo
+- [x] 3.2 Implementar invitación de cuentas del navegador con rol `read`/`write` y cambio de rol posterior, verificando que un invitado `read` no puede crear contenido y `write` sí
+- [x] 3.3 Implementar `consumptionConfig` por place (`defaultRefreshDays`, `reminderThresholdDays`) y verificar que es independiente entre places
 
 ## 4. Listas de compras e invitados
 
