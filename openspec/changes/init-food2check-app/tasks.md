@@ -5,9 +5,9 @@
 
 ## 2. Autenticación local
 
-- [ ] 2.1 Implementar registro (username único, password/repeatPassword iguales, hash SHA-256+salt con `crypto.subtle`) y verificar que registrar crea el usuario hasheado en localStorage
-- [ ] 2.2 Implementar login y sesión (`f2c:session` con `userId`/`placeId`) y verificar que credenciales válidas inician sesión e inválidas muestran error genérico en español
-- [ ] 2.3 Implementar cambio de cuenta (listar usuarios del navegador, exigir contraseña) y cerrar sesión, verificando que la sesión activa cambia/termina
+- [x] 2.1 Implementar registro (username único, password/repeatPassword iguales, hash SHA-256+salt con `crypto.subtle`) y verificar que registrar crea el usuario hasheado en localStorage
+- [x] 2.2 Implementar login y sesión (`f2c:session` con `userId`/`placeId`) y verificar que credenciales válidas inician sesión e inválidas muestran error genérico en español
+- [x] 2.3 Implementar cambio de cuenta (listar usuarios del navegador, exigir contraseña) y cerrar sesión, verificando que la sesión activa cambia/termina
 
 ## 3. Places y membresías
 
