@@ -6,19 +6,19 @@ Permite que cada persona tenga una cuenta local en el navegador (registro, inici
 ## Requirements
 
 ### Requirement: Registro de cuenta local
-El sistema DEBERÁ permitir crear una cuenta local con `username`, `password` y `repeat password`, validando que ambas contraseñas coincidan y que el `username` no exista ya en el navegador. La contraseña NUNCA se almacenará en texto plano (se persistirá un hash). Todos los textos del formulario DEBERÁN estar en español.
+El sistema DEBERÁ permitir crear una cuenta con `username`, `password` y `repeat password`, validando que ambas contraseñas coincidan y que el `username` no exista ya (comparación case-insensitive). La cuenta se crea **en el servidor** (SQLite, hash PBKDF2-SHA-256 con salt) y devuelve un token de sesión. La contraseña NUNCA se almacena ni hashea en el navegador. Todos los textos del formulario DEBERÁN estar en español.
 
 #### Scenario: Registro exitoso
 - **WHEN** el usuario envía un `username` nuevo y dos contraseñas idénticas válidas
-- **THEN** el sistema crea la cuenta, persiste el usuario en localStorage y permite iniciar sesión
+- **THEN** el servidor crea la cuenta con hash PBKDF2, emite un token de sesión y el cliente queda logueado
 
 #### Scenario: Contraseñas no coinciden
 - **WHEN** `password` y `repeat password` difieren
 - **THEN** el sistema muestra un error en español y no crea la cuenta
 
 #### Scenario: Username ya existe
-- **WHEN** el `username` ingresado ya está registrado en el navegador
-- **THEN** el sistema muestra un error indicando que el usuario ya existe
+- **WHEN** el `username` ingresado ya está registrado (en cualquier dispositivo)
+- **THEN** el servidor responde 409 indicando que el usuario ya existe
 
 ### Requirement: Inicio de sesión
 El sistema DEBERÁ autenticar con `username` y `password` contra las cuentas locales almacenadas y, si son válidas, establecer una sesión activa asociada a ese usuario.

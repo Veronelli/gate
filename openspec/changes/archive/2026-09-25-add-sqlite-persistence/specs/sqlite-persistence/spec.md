@@ -48,11 +48,4 @@ El estado de dominio (places, memberships, lists, items, products, invites, usua
 - **WHEN** el cliente envía un documento que contiene `passwordHash`/`salt` en `users`
 - **THEN** el servidor lo persiste sin esos campos
 
-## MODIFIED Requirements
 
-### Requirement: Registro de cuenta local
-El registro DEBERÁ validar unicidad de username y crear la cuenta **en el servidor** (SQLite), devolviendo token de sesión. La contraseña nunca se persiste en el navegador.
-
-#### Scenario: Registro exitoso
-- **WHEN** el usuario completa username único, contraseña y repetir contraseña
-- **THEN** el servidor crea la cuenta con PBKDF2 y el cliente queda logueado con token de sesión
