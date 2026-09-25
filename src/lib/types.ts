@@ -38,6 +38,8 @@ export interface Product {
   suggestedPrice: number;
   refreshDays: number;
   unitsRemaining: number;
+  /** Unidades compradas la última vez; referencia para la tasa de consumo. */
+  lastUnitsPurchased: number;
   /** Últimos intervalos (días) entre compras; máx. 3 entradas. */
   plazos: number[];
   lastPurchaseAt: string | null;
