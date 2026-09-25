@@ -1,0 +1,82 @@
+export type PlaceRole = "admin" | "write" | "read";
+export type InvitePermission = "read" | "edit";
+export type ListState = "listando" | "a_comprar" | "comprando" | "listo";
+
+export interface User {
+  id: string;
+  username: string;
+  passwordHash: string;
+  salt: string;
+  createdAt: string;
+}
+
+export interface ConsumptionConfig {
+  defaultRefreshDays: number;
+  reminderThresholdDays: number;
+}
+
+export interface Place {
+  id: string;
+  name: string;
+  createdBy: string;
+  createdAt: string;
+  consumptionConfig: ConsumptionConfig;
+}
+
+export interface Membership {
+  placeId: string;
+  userId: string;
+  role: PlaceRole;
+}
+
+export interface Product {
+  id: string;
+  placeId: string;
+  name: string;
+  brand: string;
+  imageUrl: string;
+  suggestedPrice: number;
+  refreshDays: number;
+  unitsRemaining: number;
+  /** Últimos intervalos (días) entre compras; máx. 3 entradas. */
+  plazos: number[];
+  lastPurchaseAt: string | null;
+}
+
+export interface ShoppingList {
+  id: string;
+  placeId: string;
+  name: string;
+  description?: string;
+  createdBy: string;
+  state: ListState;
+}
+
+export interface ListItemSnapshot {
+  name: string;
+  brand: string;
+  imageUrl: string;
+  suggestedPrice: number;
+  capturedAt: string;
+}
+
+export interface ListItem {
+  id: string;
+  listId: string;
+  productId: string;
+  units: number;
+  checked: boolean;
+  snapshot: ListItemSnapshot;
+}
+
+export interface ListInvite {
+  listId: string;
+  userId: string;
+  permission: InvitePermission;
+}
+
+export interface Session {
+  userId: string;
+  placeId: string | null;
+  startedAt: string;
+}
