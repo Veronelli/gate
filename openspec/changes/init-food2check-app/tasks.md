@@ -1,7 +1,7 @@
 ## 1. Base de datos local y dominio
 
-- [ ] 1.1 Crear `src/lib/storage.ts` (keys `f2c:*`, documento raíz con `schemaVersion: 1`, helpers get/set) y verificar que persiste/lee JSON en localStorage
-- [ ] 1.2 Definir tipos de dominio (`User`, `Place`, `Membership`, `Product`, `ShoppingList`, `ListItem`, `ListInvite`, `Session`) en `src/lib/types.ts` y verificar que `npx tsc --noEmit` pasa
+- [x] 1.1 Crear `src/lib/storage.ts` (keys `f2c:*`, documento raíz con `schemaVersion: 1`, helpers get/set) y verificar que persiste/lee JSON en localStorage
+- [x] 1.2 Definir tipos de dominio (`User`, `Place`, `Membership`, `Product`, `ShoppingList`, `ListItem`, `ListInvite`, `Session`) en `src/lib/types.ts` y verificar que `npx tsc --noEmit` pasa
 
 ## 2. Autenticación local
 
