@@ -54,7 +54,7 @@ export function ProductSearch({
   return (
     <div className="relative">
       <input
-        className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+        className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-emerald-500 focus:ring-emerald-500"
         placeholder="Buscar producto en el catálogo…"
         value={term}
         onChange={(e) => {
@@ -63,7 +63,7 @@ export function ProductSearch({
         }}
       />
       {searching && (
-        <p className="mt-1 text-xs text-neutral-500">Buscando…</p>
+        <p className="mt-1 text-xs text-gray-500">Buscando…</p>
       )}
       {error && (
         <div className="mt-1 flex items-center gap-2 text-xs text-red-600">
@@ -78,12 +78,12 @@ export function ProductSearch({
         </div>
       )}
       {results.length > 0 && (
-        <ul className="mt-1 max-h-64 divide-y overflow-auto rounded-lg border bg-white shadow-lg">
+        <ul className="mt-1 max-h-64 divide-y divide-gray-200 overflow-auto rounded-lg border border-gray-200 bg-white shadow">
           {results.map((p) => (
             <li key={p.id}>
               <button
                 type="button"
-                className="flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-emerald-50"
+                className="flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-gray-50"
                 onClick={() => {
                   onPick(p);
                   setTerm("");
@@ -100,7 +100,7 @@ export function ProductSearch({
                 )}
                 <span className="flex-1">
                   <span className="block text-sm font-medium">{p.name}</span>
-                  <span className="block text-xs text-neutral-500">
+                  <span className="block text-xs text-gray-500">
                     {p.brand}
                   </span>
                 </span>

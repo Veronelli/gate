@@ -1,4 +1,9 @@
 @import "tailwindcss";
+@plugin "flowbite/plugin";
+
+@theme inline {
+  --font-brand: var(--font-cal-sans);
+}
 
 body {
   margin: 0;

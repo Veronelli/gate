@@ -54,7 +54,7 @@ export function ListDetail({
         <button type="button" onClick={onBack} className="text-sm underline">
           ← Volver
         </button>
-        <p className="mt-4 text-neutral-500">La lista no existe.</p>
+        <p className="mt-4 text-gray-500">La lista no existe.</p>
       </div>
     );
   }
@@ -116,7 +116,7 @@ export function ListDetail({
         {editable && nextState && (
           <button
             type="button"
-            className="rounded-lg bg-emerald-600 px-3 py-1 text-sm text-white hover:bg-emerald-700"
+            className="rounded-lg bg-emerald-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-800 focus:outline-none focus:ring-4 focus:ring-emerald-300"
             onClick={() => {
               showError(advanceListState(listId, userId));
               onChanged();
@@ -127,7 +127,7 @@ export function ListDetail({
         )}
       </header>
       {list.description && (
-        <p className="mt-1 text-sm text-neutral-600">{list.description}</p>
+        <p className="mt-1 text-sm text-gray-600">{list.description}</p>
       )}
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
 
@@ -140,9 +140,9 @@ export function ListDetail({
         </div>
       )}
 
-      <ul className="mt-6 divide-y rounded-xl border bg-white">
+      <ul className="mt-6 divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white shadow-sm">
         {items.length === 0 && (
-          <li className="p-4 text-sm text-neutral-500">
+          <li className="p-4 text-sm text-gray-500">
             La lista está vacía. Buscá productos para agregar.
           </li>
         )}
@@ -171,13 +171,13 @@ export function ListDetail({
               >
                 {item.snapshot.name}
               </p>
-              <p className="text-xs text-neutral-500">{item.snapshot.brand}</p>
+              <p className="text-xs text-gray-500">{item.snapshot.brand}</p>
             </div>
             {editable ? (
               <input
                 type="number"
                 min={1}
-                className="w-16 rounded border border-neutral-300 px-2 py-1 text-sm"
+                className="w-16 rounded-lg border border-gray-300 bg-gray-50 p-1.5 text-sm text-gray-900 focus:border-emerald-500 focus:ring-emerald-500"
                 value={item.units}
                 onChange={(e) => {
                   const units = Number(e.target.value);
@@ -210,9 +210,9 @@ export function ListDetail({
       {admin && (
         <section className="mt-8 max-w-md">
           <h3 className="text-sm font-medium">Invitados de la lista</h3>
-          <ul className="mt-2 divide-y rounded-lg border bg-white">
+          <ul className="mt-2 divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white shadow-sm">
             {invites.length === 0 && (
-              <li className="p-3 text-sm text-neutral-500">
+              <li className="p-3 text-sm text-gray-500">
                 Nadie está invitado todavía.
               </li>
             )}
@@ -224,7 +224,7 @@ export function ListDetail({
                 <span>{accounts.get(inv.userId) ?? inv.userId}</span>
                 <span className="flex items-center gap-2">
                   <select
-                    className="rounded border px-2 py-1 text-xs"
+                    className="rounded-lg border border-gray-300 bg-gray-50 px-2 py-1 text-xs text-gray-900 focus:border-emerald-500 focus:ring-emerald-500"
                     value={inv.permission}
                     onChange={(e) => {
                       showError(
@@ -258,7 +258,7 @@ export function ListDetail({
           {invitable.length > 0 && (
             <div className="mt-2 flex gap-2">
               <select
-                className="flex-1 rounded border px-2 py-1 text-sm"
+                className="flex-1 rounded-lg border border-gray-300 bg-gray-50 px-2 py-1.5 text-sm text-gray-900 focus:border-emerald-500 focus:ring-emerald-500"
                 value={inviteTarget}
                 onChange={(e) => setInviteTarget(e.target.value)}
               >
@@ -271,7 +271,7 @@ export function ListDetail({
               </select>
               <button
                 type="button"
-                className="rounded-lg bg-emerald-600 px-3 py-1 text-sm text-white hover:bg-emerald-700"
+                className="rounded-lg bg-emerald-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-800 focus:outline-none focus:ring-4 focus:ring-emerald-300"
                 onClick={() => {
                   if (!inviteTarget) return;
                   showError(inviteToList(listId, userId, inviteTarget));

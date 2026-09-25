@@ -1,5 +1,12 @@
 import type { Metadata } from "next";
+import { Cal_Sans } from "next/font/google";
 import "./globals.css";
+
+const calSans = Cal_Sans({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-cal-sans",
+});
 
 export const metadata: Metadata = {
   title: "food2check",
@@ -13,7 +20,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body>{children}</body>
+      <body className={calSans.variable}>{children}</body>
     </html>
   );
 }
