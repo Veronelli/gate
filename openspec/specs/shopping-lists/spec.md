@@ -80,3 +80,15 @@ Cuando el usuario no pueda editar la lista, la vista DEBERÁ (SHALL) adaptarse: 
 #### Scenario: Lista sin panel lateral
 - **WHEN** un lector abre una lista sin etiquetas, fecha ni invitados
 - **THEN** los productos ocupan todo el ancho sin columna vacía
+
+### Requirement: Filtros del listado por prioridad y etiqueta
+
+El listado de listas del place DEBERÁ (SHALL) ofrecer filtros combinables: por **importancia** (alta|media|baja) y por **etiqueta** — las opciones de etiqueta se derivan de los tags presentes en las listas del entorno actual. Con filtros activos DEBERÁ (SHALL) ofrecerse "Limpiar filtros", y si ninguna lista coincide DEBERÁ (SHALL) mostrarse un estado vacío informativo.
+
+#### Scenario: Filtrar por prioridad
+- **WHEN** el usuario elige "Prioridad alta"
+- **THEN** solo se listan las listas con importancia alta
+
+#### Scenario: Filtrar por etiqueta del entorno
+- **WHEN** el usuario elige una etiqueta existente en las listas del place
+- **THEN** solo se listan las listas que contienen esa etiqueta

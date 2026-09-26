@@ -43,6 +43,21 @@ export const telegramLinkRequestsTable = sqliteTable(
   },
 );
 
+/**
+ * Historial del agente Checky por usuario. `role` = "user" | "assistant";
+ * `day` (YYYY-MM-DD UTC) se usa para el límite diario de inputs.
+ */
+export const checkyMessagesTable = sqliteTable("checky_messages", {
+  id: text().primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => usersTable.id),
+  role: text().notNull(),
+  text: text().notNull(),
+  day: text().notNull(),
+  createdAt: text("created_at").notNull(),
+});
+
 /** Documento JSON con el dominio (places, listas, productos, invitaciones). */
 export const appStateTable = sqliteTable("app_state", {
   id: int().primaryKey(),

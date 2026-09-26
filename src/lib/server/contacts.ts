@@ -46,6 +46,18 @@ export async function upsertContact(
   return contact;
 }
 
+/** Resuelve el userId dueño de un chat de Telegram (vínculo confirmado). */
+export async function getUserIdByTelegramChat(
+  chatId: string,
+): Promise<string | null> {
+  const rows = await getDb()
+    .select({ userId: contactsTable.userId })
+    .from(contactsTable)
+    .where(eq(contactsTable.telegramChatId, chatId))
+    .limit(1);
+  return rows[0]?.userId ?? null;
+}
+
 /** Quita solo la vinculación con Telegram; conserva el teléfono. */
 export async function unlinkTelegram(userId: string): Promise<void> {
   await getDb()

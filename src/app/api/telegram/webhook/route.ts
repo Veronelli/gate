@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { getEnvVar } from "@/lib/server/env";
+import { dispatchChecky } from "@/lib/server/checky/agent";
 import {
   answerCallbackQuery,
   getBotMe,
@@ -81,7 +83,26 @@ export async function POST(request: Request) {
   // --- /start <code> → preguntar si quiere conectarse -------------------
   const text = update.message?.text?.trim() ?? "";
   const chatId = update.message?.chat?.id;
-  if (!text.startsWith("/start") || chatId == null) {
+  if (chatId == null || !text) {
+    return NextResponse.json({ ok: true });
+  }
+
+  // Texto que no es /start → agente Checky (identidad por chat_id).
+  if (!text.startsWith("/start")) {
+    if (!token) return NextResponse.json({ ok: true });
+    const work = dispatchChecky(String(chatId), text, token).catch((e) =>
+      console.warn("checky:", e),
+    );
+    try {
+      const { ctx } = await getCloudflareContext({ async: true });
+      if (ctx?.waitUntil) {
+        ctx.waitUntil(work);
+        return NextResponse.json({ ok: true });
+      }
+    } catch {
+      // Sin contexto CF (next dev): se espera inline.
+    }
+    await work;
     return NextResponse.json({ ok: true });
   }
   if (!token) return NextResponse.json({ ok: true });
