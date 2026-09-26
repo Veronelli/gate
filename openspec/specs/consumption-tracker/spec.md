@@ -40,3 +40,11 @@ Cuando la estimación indique que un producto está por agotarse, el sistema DEB
 #### Scenario: Aviso de recompra
 - **WHEN** el tiempo estimado restante de un producto llega a su umbral
 - **THEN** se muestra un aviso en español indicando que probablemente deba comprar más unidades del producto "X"
+
+### Requirement: Prioridad explicada al usuario
+
+La barra de prioridad de las sugerencias DEBERÁ (SHALL) contar con un indicador de ayuda ("?") que explique qué significa y cómo se calcula (raciones restantes vs. ritmo de consumo estimado). El campo de refresco interno del cálculo NO DEBERÁ (SHALL NOT) mostrarse ni editarse desde la vista de sugerencias.
+
+#### Scenario: Ayuda sobre la barra
+- **WHEN** el usuario pasa el cursor sobre el "?" junto a "Sugerencias de compra"
+- **THEN** se explica que la barra representa la urgencia de recompra según stock y ritmo de consumo

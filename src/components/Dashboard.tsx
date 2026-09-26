@@ -63,6 +63,13 @@ export function Dashboard({
   } | null | undefined>(undefined);
   const [phone, setPhone] = useState("");
   const [phoneMsg, setPhoneMsg] = useState<string | null>(null);
+  const [linkingTelegram, setLinkingTelegram] = useState(false);
+  const [linkCode, setLinkCode] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+  const [editingProductId, setEditingProductId] = useState<string | null>(
+    null,
+  );
+  const [draftUnits, setDraftUnits] = useState("");
 
   const user = getCurrentUser();
   const session = getSession();
@@ -123,6 +130,104 @@ export function Dashboard({
     setContact(data.contact);
     setPhoneMsg(null);
   }
+
+  /**
+   * Contrato de vinculación: pide un código al server (expira a los
+   * 10 min), abre el bot y escucha el resultado por un stream SSE.
+   */
+  async function startTelegramLink() {
+    if (!session?.token || !user) return;
+    setLinkingTelegram(true);
+    const res = await fetch("/api/contacts/link", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${session.token}` },
+    });
+    const data = (await res.json()) as { code?: string; url?: string };
+    if (!res.ok || !data.code) {
+      setLinkingTelegram(false);
+      return;
+    }
+    if (data.url) window.open(data.url, "_blank");
+    setLinkCode(data.code);
+  }
+
+  async function removeContact() {
+    if (!session?.token) return;
+    await fetch("/api/contacts", {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${session.token}` },
+    });
+    setContact(null);
+    setPhone("");
+    setLinkingTelegram(false);
+  }
+
+  /** Desvincula Telegram pero conserva el teléfono del contact. */
+  async function unlinkTelegram() {
+    if (!session?.token) return;
+    await fetch("/api/contacts?scope=telegram", {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${session.token}` },
+    });
+    setContact((c) => (c ? { ...c, telegramChatId: null } : c));
+  }
+
+  // Stream SSE del contrato: el servidor empuja confirmed/cancelled/expired.
+  useEffect(() => {
+    if (!linkingTelegram || !linkCode || !session?.token) return;
+    const es = new EventSource(
+      `/api/contacts/link/stream?code=${linkCode}`,
+    );
+    es.onmessage = (ev) => {
+      const status = ev.data;
+      if (status === "confirmed") {
+        es.close();
+        setLinkingTelegram(false);
+        setLinkCode(null);
+        setToast("¡Vinculación completada!");
+        fetch("/api/contacts", {
+          headers: { Authorization: `Bearer ${session.token}` },
+        })
+          .then((r) => (r.ok ? r.json() : null))
+          .then((d) =>
+            setContact(
+              (
+                d as {
+                  contact?: {
+                    phone: string;
+                    telegramChatId: string | null;
+                  } | null;
+                } | null
+              )?.contact ?? null,
+            ),
+          )
+          .catch(() => undefined);
+      } else if (status === "cancelled" || status === "expired") {
+        es.close();
+        setLinkingTelegram(false);
+        setLinkCode(null);
+        setToast(
+          status === "cancelled"
+            ? "Vinculación cancelada."
+            : "El link venció; generá uno nuevo.",
+        );
+      }
+    };
+    es.onerror = () => {
+      es.close();
+      setLinkingTelegram(false);
+      setLinkCode(null);
+    };
+    return () => es.close();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linkCode]);
+
+  // La notificación flotante se oculta sola a los 5 s.
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 5000);
+    return () => clearTimeout(t);
+  }, [toast]);
 
   if (!user || !session) {
     return (
@@ -200,6 +305,8 @@ export function Dashboard({
                 type="button"
                 onClick={() => {
                   setActivePlace(p.id);
+                  setSelectedListId(null);
+                  bump();
                   setMenuOpen(false);
                 }}
                 className={`w-full rounded-lg px-3 py-2 text-left text-sm ${
@@ -246,7 +353,7 @@ export function Dashboard({
           </button>
         </div>
 
-        {place && admin && (
+        {place && (
           <>
             <h2 className="mt-6 text-sm font-semibold text-white">
               Miembros de {place.name}
@@ -254,16 +361,19 @@ export function Dashboard({
             <ul className="mt-2 space-y-1 text-sm">
               {members.map((m) => (
                 <li key={m.user.id} className="flex items-center justify-between">
-                  <span>
-                    {m.user.username}
-                    {m.isCreator && (
-                      <span className="ml-1 text-xs text-gray-400">
-                        (creador)
-                      </span>
-                    )}
-                  </span>
+                  <span>{m.user.username}</span>
                   {m.isCreator ? (
-                    <span className="text-xs text-gray-400">admin</span>
+                    <span className="rounded-full bg-brand/25 px-2 py-0.5 text-xs font-medium text-white">
+                      Propietario
+                    </span>
+                  ) : !admin ? (
+                    <span className="text-xs text-gray-400">
+                      {m.role === "admin"
+                        ? "Admin"
+                        : m.role === "write"
+                          ? "Escritura"
+                          : "Lectura"}
+                    </span>
                   ) : (
                     <span className="flex items-center gap-1">
                       <select
@@ -302,44 +412,45 @@ export function Dashboard({
                 </li>
               ))}
             </ul>
-            <div className="mt-2 flex gap-1">
-              <input
-                className="block w-full rounded-lg border border-gray-600 bg-gray-700 p-1.5 text-xs text-white placeholder-gray-400 focus:border-brand focus:ring-brand/40"
-                placeholder="Nombre de usuario"
-                value={inviteUser}
-                onChange={(e) => setInviteUser(e.target.value)}
-              />
-              <select
-                className="rounded-lg border border-gray-600 bg-gray-700 px-1.5 py-1 text-xs text-white focus:border-brand focus:ring-brand/40"
-                value={inviteRole}
-                onChange={(e) =>
-                  setInviteRole(e.target.value as "read" | "write")
-                }
-              >
-                <option value="read">Lectura</option>
-                <option value="write">Escritura</option>
-              </select>
-              <button
-                type="button"
-                className="rounded-lg bg-brand px-2.5 py-1.5 text-xs font-medium text-white hover:bg-brand-dark focus:outline-none focus:ring-4 focus:ring-brand/30"
-                onClick={() => {
-                  if (!inviteUser.trim()) return;
-                  showError(
-                    inviteMemberByUsername(
-                      place.id,
-                      user.id,
-                      inviteUser,
-                      inviteRole,
-                    ),
-                  );
-                  setInviteUser("");
-                  bump();
-                }}
-              >
-                Invitar
-              </button>
-            </div>
-
+            {admin && (
+              <div className="mt-2 flex gap-1">
+                <input
+                  className="block w-full rounded-lg border border-gray-600 bg-gray-700 p-1.5 text-xs text-white placeholder-gray-400 focus:border-brand focus:ring-brand/40"
+                  placeholder="Nombre de usuario"
+                  value={inviteUser}
+                  onChange={(e) => setInviteUser(e.target.value)}
+                />
+                <select
+                  className="rounded-lg border border-gray-600 bg-gray-700 px-1.5 py-1 text-xs text-white focus:border-brand focus:ring-brand/40"
+                  value={inviteRole}
+                  onChange={(e) =>
+                    setInviteRole(e.target.value as "read" | "write")
+                  }
+                >
+                  <option value="read">Lectura</option>
+                  <option value="write">Escritura</option>
+                </select>
+                <button
+                  type="button"
+                  className="rounded-lg bg-brand px-2.5 py-1.5 text-xs font-medium text-white hover:bg-brand-dark focus:outline-none focus:ring-4 focus:ring-brand/30"
+                  onClick={() => {
+                    if (!inviteUser.trim()) return;
+                    showError(
+                      inviteMemberByUsername(
+                        place.id,
+                        user.id,
+                        inviteUser,
+                        inviteRole,
+                      ),
+                    );
+                    setInviteUser("");
+                    bump();
+                  }}
+                >
+                  Invitar
+                </button>
+              </div>
+            )}
           </>
         )}
 
@@ -349,13 +460,14 @@ export function Dashboard({
           <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-400">
             Recordatorios
           </h3>
-          {contact === undefined ? null : contact?.telegramChatId ? (
-            <p className="mt-2 text-xs text-green-400">
-              ✓ Telegram vinculado — te avisamos de tus compras pendientes.
-            </p>
-          ) : (
+          {contact === undefined ? null : (
             <>
-              {!contact?.phone ? (
+              {contact?.telegramChatId ? (
+                <p className="mt-2 text-xs text-green-400">
+                  ✓ Telegram vinculado — te avisamos de tus compras
+                  pendientes.
+                </p>
+              ) : !contact?.phone ? (
                 <>
                   <p className="mt-2 text-xs text-gray-400">
                     Agregá tu teléfono para recibir recordatorios.
@@ -385,15 +497,39 @@ export function Dashboard({
                   📱 {contact.phone}
                 </p>
               )}
-              {process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME && (
-                <a
-                  href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME}?start=${user.id}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-2 block rounded-lg border border-sky-500 px-3 py-1.5 text-center text-xs font-medium text-sky-400 hover:bg-sky-500/10"
+
+              {!contact?.telegramChatId &&
+                process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME && (
+                  <button
+                    type="button"
+                    disabled={linkingTelegram}
+                    className="mt-2 w-full rounded-lg border border-sky-500 px-3 py-1.5 text-xs font-medium text-sky-400 hover:bg-sky-500/10 disabled:opacity-50"
+                    onClick={startTelegramLink}
+                  >
+                    {linkingTelegram
+                      ? "Esperando vinculación…"
+                      : "Vincular con Telegram"}
+                  </button>
+                )}
+
+              {contact?.telegramChatId && (
+                <button
+                  type="button"
+                  className="mt-2 w-full rounded-lg border border-gray-500 px-3 py-1.5 text-xs font-medium text-gray-300 hover:bg-gray-700"
+                  onClick={() => void unlinkTelegram()}
                 >
-                  Vincular Telegram
-                </a>
+                  Desvincular
+                </button>
+              )}
+
+              {contact && (
+                <button
+                  type="button"
+                  className="mt-2 w-full rounded-lg border border-red-500/60 px-3 py-1.5 text-xs font-medium text-red-400 hover:bg-red-500/10"
+                  onClick={() => void removeContact()}
+                >
+                  Borrar
+                </button>
               )}
             </>
           )}
@@ -636,8 +772,15 @@ export function Dashboard({
                   </div>
                 </div>
 
-                <h3 className="mt-6 text-sm font-semibold uppercase tracking-wide text-gray-500">
+                <h3 className="mt-6 flex items-center gap-1.5 text-sm font-semibold uppercase tracking-wide text-gray-500">
                   Sugerencias de compra
+                  <button
+                    type="button"
+                    title="La barra indica la prioridad de compra del producto (de 0% a 100%). Se calcula según las raciones que te quedan y tu ritmo de consumo: la app estima cada cuántos días comprás ese producto y cuántas unidades te quedan. Cuanto más llena está la barra, más cerca estás de quedarte sin stock — al 100% conviene comprarlo ya."
+                    className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-gray-300 text-[10px] font-bold text-gray-400 hover:border-brand hover:text-brand"
+                  >
+                    ?
+                  </button>
                 </h3>
                 <ul className="mt-2 divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white shadow-sm">
                   {suggestions.length === 0 && (
@@ -674,78 +817,94 @@ export function Dashboard({
                         </div>
                       </div>
                       <SuggestedPrice price={s.product.suggestedPrice} />
-                      {writable && (
-                        <>
-                          <label className="text-xs text-gray-500">
-                            Raciones
-                            <input
-                              type="number"
-                              min={0}
-                              className="ml-1 w-16 rounded-lg border border-gray-300 bg-gray-50 p-1.5 text-xs text-gray-900 focus:border-brand focus:ring-brand/40"
-                              defaultValue={s.product.unitsRemaining}
-                              onBlur={(e) => {
-                                const v = Number(e.target.value);
-                                if (v >= 0 && v !== s.product.unitsRemaining) {
-                                  showError(
-                                    updateProductVariables(
-                                      place.id,
-                                      user.id,
-                                      s.product.id,
-                                      { unitsRemaining: v },
-                                    ),
-                                  );
-                                  bump();
+                      {writable &&
+                        (editingProductId === s.product.id ? (
+                          <>
+                            <label className="text-xs text-gray-500">
+                              Raciones
+                              <input
+                                type="number"
+                                min={0}
+                                value={draftUnits}
+                                onChange={(e) =>
+                                  setDraftUnits(e.target.value)
                                 }
-                              }}
-                            />
-                          </label>
-                          <label className="text-xs text-gray-500">
-                            Refresco (días)
-                            <input
-                              type="number"
-                              min={1}
-                              className="ml-1 w-16 rounded-lg border border-gray-300 bg-gray-50 p-1.5 text-xs text-gray-900 focus:border-brand focus:ring-brand/40"
-                              defaultValue={s.product.refreshDays}
-                              onBlur={(e) => {
-                                const v = Number(e.target.value);
-                                if (v > 0 && v !== s.product.refreshDays) {
-                                  showError(
-                                    updateProductVariables(
-                                      place.id,
-                                      user.id,
-                                      s.product.id,
-                                      { refreshDays: v },
-                                    ),
-                                  );
-                                  bump();
-                                }
-                              }}
-                            />
-                          </label>
-                          <button
-                            type="button"
-                            className="rounded-lg border border-red-300 px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
-                            onClick={() => {
-                              if (
-                                window.confirm(
-                                  `¿Eliminar "${s.product.name}" del lugar?`,
-                                )
-                              ) {
+                                className="ml-1 w-16 rounded-lg border border-gray-300 bg-gray-50 p-1.5 text-xs text-gray-900 focus:border-brand focus:ring-brand/40"
+                              />
+                            </label>
+                            <button
+                              type="button"
+                              className="rounded-lg bg-brand px-2 py-1 text-xs font-medium text-white hover:bg-brand-dark"
+                              onClick={() => {
+                                const u = Number(draftUnits);
                                 showError(
-                                  deleteProduct(
+                                  updateProductVariables(
                                     place.id,
                                     user.id,
                                     s.product.id,
+                                    {
+                                      unitsRemaining:
+                                        u >= 0
+                                          ? u
+                                          : s.product.unitsRemaining,
+                                    },
                                   ),
                                 );
+                                setEditingProductId(null);
                                 bump();
-                              }
-                            }}
-                          >
-                            Eliminar
-                          </button>
-                        </>
-                      )}
+                              }}
+                            >
+                              Guardar
+                            </button>
+                            <button
+                              type="button"
+                              className="rounded-lg border border-gray-300 px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50"
+                              onClick={() => setEditingProductId(null)}
+                            >
+                              Cancelar
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-xs text-gray-400">
+                              {s.product.unitsRemaining} uds
+                            </span>
+                            <button
+                              type="button"
+                              className="rounded-lg border border-gray-300 px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50"
+                              onClick={() => {
+                                setEditingProductId(s.product.id);
+                                setDraftUnits(
+                                  String(s.product.unitsRemaining),
+                                );
+                              }}
+                            >
+                              Editar
+                            </button>
+                            <button
+                              type="button"
+                              className="rounded-lg border border-red-300 px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+                              onClick={() => {
+                                if (
+                                  window.confirm(
+                                    `¿Eliminar "${s.product.name}" del lugar?`,
+                                  )
+                                ) {
+                                  showError(
+                                    deleteProduct(
+                                      place.id,
+                                      user.id,
+                                      s.product.id,
+                                    ),
+                                  );
+                                  bump();
+                                }
+                              }}
+                            >
+                              Borrar
+                            </button>
+                          </>
+                        ))}
                     </li>
                   ))}
                 </ul>
@@ -756,6 +915,14 @@ export function Dashboard({
           </>
         )}
       </section>
+
+      {/* Notificación flotante */}
+      {toast && (
+        <div className="fixed bottom-4 right-4 z-50 flex items-center gap-2 rounded-lg border border-green-300 bg-white px-4 py-3 text-sm font-medium text-green-700 shadow-lg">
+          <span className="text-green-500">✓</span>
+          {toast}
+        </div>
+      )}
     </main>
   );
 }

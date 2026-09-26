@@ -73,6 +73,18 @@ const FAQ: QA[] = [
     a: "En “Productos del lugar” tocá el botón Eliminar del producto. Los items ya cargados en listas conservan su información.",
   },
   {
+    q: "¿Cómo recibo recordatorios por Telegram?",
+    a: "En el panel lateral, en “Recordatorios”, cargá tu teléfono y tocá “Vincular con Telegram”: se abre el bot Checky en Telegram y solo tenés que tocar “Iniciar”. Cuando termina vas a ver la notificación “Vinculación completada”. Es opcional: la app funciona igual sin vincular.",
+  },
+  {
+    q: "¿Cada cuánto llegan los recordatorios?",
+    a: "Cada 8 horas (a las 00, 08 y 16) te llega un mensaje con tus compras pendientes: listas a comprar, en compra o programadas para las próximas horas. Cada mensaje trae un botón “Ver lista” que abre la lista directo; si no tenés sesión te pide login y después te lleva ahí.",
+  },
+  {
+    q: "¿Cómo desvinculo o borro mi Telegram?",
+    a: "En “Recordatorios”: “Desvincular” quita solo la conexión con Telegram pero conserva tu teléfono (podés volver a vincular cuando quieras). “Borrar” elimina todo tu contacto.",
+  },
+  {
     q: "¿Cómo cierro sesión?",
     a: "Con el botón “Cerrar sesión” al pie del panel lateral. Para usar otra cuenta, cerrá sesión e ingresá con esas credenciales.",
   },

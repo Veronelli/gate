@@ -1,20 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type GeoState = "idle" | "asking" | "granted" | "denied";
 
+const CHAIN_SUGGESTIONS = ["supermercado", "Dia", "Coto", "Carrefour"];
+
 /**
  * Mapa embebido de Google Maps con supermercados cercanos.
- * Usa el embed público (sin API key). El permiso de ubicación se
- * pide explícitamente con un botón; sin permiso se muestra una
- * búsqueda genérica.
+ * Usa el embed público (sin API key): el estilo se aproxima con un
+ * filtro CSS hacia el color de marca, y las cadenas se eligen con
+ * chips que cambian la búsqueda.
+ * El permiso de ubicación se pide explícitamente con un botón.
  */
 export function NearbyMarketsMap() {
   const [state, setState] = useState<GeoState>("idle");
-  const [src, setSrc] = useState(
-    "https://maps.google.com/maps?q=supermercados&z=13&output=embed",
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(
+    null,
   );
+  const [query, setQuery] = useState("supermercado");
+  const [search, setSearch] = useState("supermercado");
+
+  // Debounce: el iframe no se recarga en cada tecla.
+  useEffect(() => {
+    const t = setTimeout(
+      () => setQuery(search.trim() || "supermercado"),
+      600,
+    );
+    return () => clearTimeout(t);
+  }, [search]);
+
+  // z=15 ≈ 1 km de radio en la vista del mapa.
+  const src = coords
+    ? `https://maps.google.com/maps?q=${encodeURIComponent(query || "supermercado")}&ll=${coords.lat},${coords.lng}&z=15&output=embed`
+    : `https://maps.google.com/maps?q=supermercado&z=13&output=embed`;
 
   function askLocation() {
     if (!navigator.geolocation) {
@@ -24,11 +43,10 @@ export function NearbyMarketsMap() {
     setState("asking");
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        const { latitude, longitude } = pos.coords;
-        // z=20 ≈ 50 m de radio en la vista del mapa.
-        setSrc(
-          `https://maps.google.com/maps?q=supermercado&ll=${latitude},${longitude}&z=20&output=embed`,
-        );
+        setCoords({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        });
         setState("granted");
       },
       () => setState("denied"),
@@ -59,18 +77,50 @@ export function NearbyMarketsMap() {
         </div>
       )}
       {(state === "granted" || state === "denied") && (
-        <iframe
-          title="Supermercados cercanos"
-          src={src}
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-          className="h-72 w-full rounded-lg border border-gray-200 shadow-sm"
-          allowFullScreen
-        />
+        <div className="relative">
+          <iframe
+            title="Supermercados cercanos"
+            src={src}
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            className="h-72 w-full rounded-lg border border-gray-200 shadow-sm"
+            allowFullScreen
+          />
+          {state === "granted" && (
+            <div className="absolute right-2 top-2 flex gap-1">
+              <input
+                type="text"
+                list="f2c-chains"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    setQuery(search.trim() || "supermercado");
+                  }
+                }}
+                placeholder="Buscar: Día, Coto, Carrefour…"
+                className="w-44 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs text-gray-900 shadow focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+              />
+              <button
+                type="button"
+                title="Buscar"
+                onClick={() => setQuery(search.trim() || "supermercado")}
+                className="rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-xs text-gray-600 shadow hover:bg-gray-50"
+              >
+                🔍
+              </button>
+              <datalist id="f2c-chains">
+                {CHAIN_SUGGESTIONS.map((c) => (
+                  <option key={c} value={c} />
+                ))}
+              </datalist>
+            </div>
+          )}
+        </div>
       )}
       <p className="mt-1 text-xs text-gray-500">
         {state === "granted" &&
-          "Supermercados en un radio de ~50 m de tu ubicación."}
+          "Supermercados en un radio de ~1 km de tu ubicación."}
         {state === "denied" && (
           <>
             No pudimos acceder a tu ubicación; mostramos supermercados en

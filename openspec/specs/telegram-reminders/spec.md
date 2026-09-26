@@ -1,7 +1,7 @@
 # telegram-reminders Specification
 
 ## Purpose
-TBD - created by archiving change add-telegram-reminders. Update Purpose after archive.
+Recordatorios y notificaciones por Telegram: cron cada 8 h con las compras pendientes, contrato de vinculación con expiración y confirmación desde el bot, y reporte único consolidado de cambios en listas.
 
 ## Requirements
 
@@ -57,14 +57,34 @@ Cada mensaje DEBERÁ (SHALL) incluir un `inline_keyboard` con un botón "Ver lis
 - **WHEN** el usuario abre el link sin sesión activa
 - **THEN** se lo lleva al login con `redirect_path` y, tras autenticarse con éxito, termina en la lista indicada
 
-### Requirement: Vinculación del usuario con el bot
+### Requirement: Contrato de vinculación del usuario con el bot
 
-El sistema DEBERÁ (SHALL) vincular el `telegram_chat_id` del usuario cuando este inicie conversación con el bot mediante `/start <userId>`, procesado por un webhook (`POST /api/telegram/webhook`) que valide el header `X-Telegram-Bot-Api-Secret-Token`.
+La vinculación DEBERÁ (SHALL) seguir un contrato persistente (tabla `telegram_link_requests`): al tocar "Vincular con Telegram" la app crea un request con código único y expiración de 10 minutos (`pending`), abre `t.me/<bot>?start=<code>`, y escucha el estado por SSE (`/api/contacts/link/stream`). El webhook (`POST /api/telegram/webhook`, validando `X-Telegram-Bot-Api-Secret-Token`) responde al `/start <code>` con un mensaje que identifica el bot (`getMe`) y la cuenta que solicita la vinculación (username + teléfono del `contact`), junto a botones inline **Sí, conectar / No, cancelar**. Sí → `confirmed` y se guarda `telegram_chat_id`; No → `cancelled`; 10 minutos sin respuesta → `expired` (expiración perezosa).
 
-#### Scenario: Vinculación exitosa
-- **WHEN** el usuario envía `/start <userId>` al bot tras tocar "Vincular Telegram" en la app
-- **THEN** el webhook guarda el `chat_id` en el `contact` de ese usuario
+#### Scenario: Confirmación con botones
+- **WHEN** el usuario envía `/start <code>` y toca "Sí, conectar"
+- **THEN** el webhook guarda el `chat_id` en el `contact`, el request pasa a `confirmed` y la página muestra "¡Vinculación completada!" vía SSE
+
+#### Scenario: Rechazo en el bot
+- **WHEN** el usuario toca "No, cancelar"
+- **THEN** el request pasa a `cancelled` y la página lo refleja sin vincular
+
+#### Scenario: Expiración
+- **WHEN** pasan 10 minutos sin respuesta en Telegram
+- **THEN** el request se marca `expired` al consultarse y la página invita a generar un link nuevo
 
 #### Scenario: Webhook sin secret válido
 - **WHEN** llega un POST al webhook sin el header secreto correcto
 - **THEN** se responde 401 y no se modifica ningún dato
+
+### Requirement: Reporte único de cambios en listas
+
+El sistema DEBERÁ (SHALL) notificar por Telegram los cambios en listas, comparando el documento anterior y el nuevo en `PUT /api/state`. Se detectan: cambios de estado, productos agregados, quitados y modificados (unidades). Los eventos DEBERÁN (SHALL) consolidarse en **un único mensaje por usuario destinatario** con una sección por lista afectada y un botón "Ver lista" por cada una. Los destinatarios son los miembros del place más los invitados de la lista que tengan `telegram_chat_id` — **incluido quien originó el cambio**. Los envíos se hacen en paralelo con `Promise.allSettled`.
+
+#### Scenario: Varios cambios, un mensaje
+- **WHEN** en un mismo guardado una lista cambia de estado y otra agrega un producto
+- **THEN** el usuario recibe un solo mensaje con ambas secciones y un botón de acceso por lista
+
+#### Scenario: El actor también recibe
+- **WHEN** un usuario modifica una lista de un lugar donde tiene Telegram vinculado
+- **THEN** también recibe el reporte junto al resto de relacionados

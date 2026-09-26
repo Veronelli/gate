@@ -2,7 +2,8 @@
 
 export interface InlineButton {
   text: string;
-  url: string;
+  url?: string;
+  callback_data?: string;
 }
 
 export interface SendResult {
@@ -56,4 +57,41 @@ export async function sendTelegramMessage(
     }
   }
   return { ok: false, error: "retry agotado" };
+}
+
+/** Datos públicos del bot (getMe). */
+export async function getBotMe(
+  token: string,
+): Promise<{ username: string; firstName: string } | null> {
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${token}/getMe`);
+    const data = (await res.json()) as {
+      ok?: boolean;
+      result?: { username?: string; first_name?: string };
+    };
+    if (!data.ok || !data.result?.username) return null;
+    return {
+      username: data.result.username,
+      firstName: data.result.first_name ?? data.result.username,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** Cierra el "loading" del botón inline (answerCallbackQuery). */
+export async function answerCallbackQuery(
+  token: string,
+  queryId: string,
+  text?: string,
+): Promise<void> {
+  try {
+    await fetch(`https://api.telegram.org/bot${token}/answerCallbackQuery`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ callback_query_id: queryId, text }),
+    });
+  } catch {
+    // best-effort
+  }
 }

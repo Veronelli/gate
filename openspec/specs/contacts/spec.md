@@ -1,7 +1,7 @@
 # contacts Specification
 
 ## Purpose
-TBD - created by archiving change add-telegram-reminders. Update Purpose after archive.
+Datos de contacto del usuario (teléfono y chat de Telegram) en un modelo separado de `users`, con captura del teléfono, vinculación/desvinculación del bot y borrado del registro.
 
 ## Requirements
 
@@ -36,3 +36,15 @@ El modelo `contact` DEBERÁ (SHALL) almacenar el `telegram_chat_id` cuando el us
 #### Scenario: Chat vinculado
 - **WHEN** el webhook recibe `/start <userId>` válido
 - **THEN** actualiza `telegram_chat_id` en el `contact` del usuario (creándolo si no existe)
+
+### Requirement: Desvinculación y borrado del contact
+
+El usuario DEBERÁ (SHALL) poder desvincular Telegram (quita `telegram_chat_id` conservando el teléfono) y borrar el `contact` completo desde la sección "Recordatorios".
+
+#### Scenario: Desvincular conserva el teléfono
+- **WHEN** el usuario toca "Desvincular"
+- **THEN** `telegram_chat_id` queda en `null` y el `phone` se conserva
+
+#### Scenario: Borrar elimina el registro
+- **WHEN** el usuario toca "Borrar"
+- **THEN** el `contact` completo se elimina (`DELETE /api/contacts`)

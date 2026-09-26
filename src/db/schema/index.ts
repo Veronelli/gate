@@ -29,6 +29,20 @@ export const contactsTable = sqliteTable("contacts", {
   createdAt: text("created_at").notNull(),
 });
 
+/** Contrato de vinculación Telegram: expira a los 10 minutos sin confirmar. */
+export const telegramLinkRequestsTable = sqliteTable(
+  "telegram_link_requests",
+  {
+    id: text().primaryKey(), // código único (va en /start <code>)
+    userId: text("user_id")
+      .notNull()
+      .references(() => usersTable.id),
+    status: text().notNull().default("pending"), // pending|confirmed|cancelled|expired
+    expiresAt: text("expires_at").notNull(),
+    createdAt: text("created_at").notNull(),
+  },
+);
+
 /** Documento JSON con el dominio (places, listas, productos, invitaciones). */
 export const appStateTable = sqliteTable("app_state", {
   id: int().primaryKey(),

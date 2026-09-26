@@ -15,6 +15,13 @@
       "when": 1790377853325,
       "tag": "0001_chunky_vertigo",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1790382275957,
+      "tag": "0002_swift_zuras",
+      "breakpoints": true
     }
   ]
 }

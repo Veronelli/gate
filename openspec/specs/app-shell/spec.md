@@ -33,3 +33,15 @@ Tras iniciar sesión, el sistema DEBERÁ mostrar el listado de listas del place 
 #### Scenario: Cambio de place
 - **WHEN** un usuario con varios places selecciona otro place
 - **THEN** el panel se actualiza con las listas, productos y sugerencias de ese place
+
+### Requirement: Mapa de supermercados cercanos
+
+El panel DEBERÁ (SHALL) ofrecer un mapa de supermercados cercanos con permiso de ubicación explícito (botón "Compartir mi ubicación"), centrado en un radio de ~1 km. El mapa DEBERÁ (SHALL) incluir un buscador flotante dentro del propio mapa (arriba a la derecha) con autocompletado sugerido (`supermercado`, `Dia`, `Coto`, `Carrefour`) y búsqueda libre, aplicada con debounce o de inmediato con Enter/botón de lupa.
+
+#### Scenario: Permiso concedido
+- **WHEN** el usuario comparte su ubicación
+- **THEN** el mapa se centra en su posición mostrando supermercados en ~1 km
+
+#### Scenario: Búsqueda personalizada
+- **WHEN** el usuario escribe una cadena o categoría en el buscador del mapa
+- **THEN** el mapa actualiza los resultados cercanos para ese término
