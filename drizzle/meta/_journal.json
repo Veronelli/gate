@@ -22,6 +22,13 @@
       "when": 1790382275957,
       "tag": "0002_swift_zuras",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1790392574641,
+      "tag": "0003_checky_messages",
+      "breakpoints": true
     }
   ]
 }

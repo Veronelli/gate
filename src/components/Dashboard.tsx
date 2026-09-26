@@ -54,6 +54,10 @@ export function Dashboard({
   const [newListImp, setNewListImp] = useState<"alta" | "media" | "baja">(
     "media",
   );
+  const [filterImp, setFilterImp] = useState<
+    "todas" | "alta" | "media" | "baja"
+  >("todas");
+  const [filterTag, setFilterTag] = useState("todas");
   const [inviteUser, setInviteUser] = useState("");
   const [inviteRole, setInviteRole] = useState<"read" | "write">("read");
   const [error, setError] = useState<string | null>(null);
@@ -267,6 +271,14 @@ export function Dashboard({
 
   const suggestions = place ? getSuggestedItems(place.id) : [];
   const placeLists = place ? listPlaceLists(place.id, user.id) : [];
+  const placeTags = Array.from(
+    new Set(placeLists.flatMap((l) => l.tags ?? [])),
+  ).sort((a, b) => a.localeCompare(b));
+  const visibleLists = placeLists.filter(
+    (l) =>
+      (filterImp === "todas" || (l.importance ?? "media") === filterImp) &&
+      (filterTag === "todas" || (l.tags ?? []).includes(filterTag)),
+  );
   const admin = place ? isPlaceAdmin(place.id, user.id) : false;
   const writable = place ? canWritePlace(place.id, user.id) : false;
   const members = place ? listMembers(place.id) : [];
@@ -689,13 +701,62 @@ export function Dashboard({
                     </button>
                   </div>
                 )}
+                {placeLists.length > 0 && (
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <select
+                      aria-label="Filtrar por prioridad"
+                      className="rounded-lg border border-gray-300 bg-gray-50 p-1.5 text-xs text-gray-700 focus:border-brand focus:ring-brand/40"
+                      value={filterImp}
+                      onChange={(e) =>
+                        setFilterImp(
+                          e.target.value as "todas" | "alta" | "media" | "baja",
+                        )
+                      }
+                    >
+                      <option value="todas">Toda prioridad</option>
+                      <option value="alta">Prioridad alta</option>
+                      <option value="media">Prioridad media</option>
+                      <option value="baja">Prioridad baja</option>
+                    </select>
+                    <select
+                      aria-label="Filtrar por etiqueta"
+                      className="rounded-lg border border-gray-300 bg-gray-50 p-1.5 text-xs text-gray-700 focus:border-brand focus:ring-brand/40"
+                      value={filterTag}
+                      onChange={(e) => setFilterTag(e.target.value)}
+                    >
+                      <option value="todas">Todas las etiquetas</option>
+                      {placeTags.map((t) => (
+                        <option key={t} value={t}>
+                          {t}
+                        </option>
+                      ))}
+                    </select>
+                    {(filterImp !== "todas" || filterTag !== "todas") && (
+                      <button
+                        type="button"
+                        className="text-xs text-gray-500 hover:underline"
+                        onClick={() => {
+                          setFilterImp("todas");
+                          setFilterTag("todas");
+                        }}
+                      >
+                        Limpiar filtros
+                      </button>
+                    )}
+                  </div>
+                )}
                 <ul className="mt-3 space-y-2">
                   {placeLists.length === 0 && (
                     <li className="text-sm text-gray-500">
                       Todavía no hay listas en este lugar.
                     </li>
                   )}
-                  {placeLists.map((l) => (
+                  {placeLists.length > 0 && visibleLists.length === 0 && (
+                    <li className="text-sm text-gray-500">
+                      Ninguna lista coincide con los filtros.
+                    </li>
+                  )}
+                  {visibleLists.map((l) => (
                     <li key={l.id}>
                       <button
                         type="button"
