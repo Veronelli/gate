@@ -48,3 +48,15 @@ El usuario DEBERÁ (SHALL) poder desvincular Telegram (quita `telegram_chat_id` 
 #### Scenario: Borrar elimina el registro
 - **WHEN** el usuario toca "Borrar"
 - **THEN** el `contact` completo se elimina (`DELETE /api/contacts`)
+
+### Requirement: Teléfono obligatorio antes de vincular Telegram
+
+El usuario DEBERÁ (SHALL) haber cargado su número de teléfono en `contact` antes de poder iniciar el contrato de vinculación. La UI NO DEBERÁ (SHALL NOT) mostrar el botón "Vincular con Telegram" sin teléfono registrado, y `POST /api/contacts/link` DEBERÁ (SHALL) rechazar con error la creación del link si el `contact` no tiene `phone`.
+
+#### Scenario: Vincular sin teléfono
+- **WHEN** un usuario sin teléfono cargado intenta iniciar la vinculación
+- **THEN** el servidor responde error indicando que primero debe cargar el número
+
+#### Scenario: Vincular con teléfono
+- **WHEN** el usuario ya guardó su teléfono
+- **THEN** se muestra el botón y `POST /api/contacts/link` crea el contrato normalmente
