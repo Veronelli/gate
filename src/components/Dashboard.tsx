@@ -498,7 +498,8 @@ export function Dashboard({
                 </p>
               )}
 
-              {!contact?.telegramChatId &&
+              {contact?.phone &&
+                !contact?.telegramChatId &&
                 process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME && (
                   <button
                     type="button"
