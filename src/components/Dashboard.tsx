@@ -142,12 +142,23 @@ export function Dashboard({
       method: "POST",
       headers: { Authorization: `Bearer ${session.token}` },
     });
-    const data = (await res.json()) as { code?: string; url?: string };
+    const data = (await res.json()) as {
+      code?: string;
+      url?: string | null;
+      error?: string;
+    };
     if (!res.ok || !data.code) {
       setLinkingTelegram(false);
+      setToast(data.error ?? "No se pudo iniciar la vinculación.");
       return;
     }
-    if (data.url) window.open(data.url, "_blank");
+    if (data.url) {
+      window.open(data.url, "_blank");
+    } else {
+      setToast(
+        "El bot de Telegram no está configurado en el servidor.",
+      );
+    }
     setLinkCode(data.code);
   }
 

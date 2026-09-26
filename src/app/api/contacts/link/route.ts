@@ -20,10 +20,15 @@ export async function POST(request: Request) {
     );
   }
   const req = await createLinkRequest(user.id);
-  const bot = (await getEnvVar("NEXT_PUBLIC_TELEGRAM_BOT_USERNAME")) ?? "";
+  const bot = (
+    (await getEnvVar("NEXT_PUBLIC_TELEGRAM_BOT_USERNAME")) ?? ""
+  ).trim().replace(/^@/, "");
   return NextResponse.json({
     code: req.id,
     expiresAt: req.expiresAt,
     url: bot ? `https://t.me/${bot}?start=${req.id}` : null,
+    ...(bot
+      ? {}
+      : { error: "NEXT_PUBLIC_TELEGRAM_BOT_USERNAME no está configurada." }),
   });
 }
