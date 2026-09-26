@@ -1,17 +1,23 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { getDb } from "@/db/getDb";
 import { appStateTable } from "@/db/schema";
 import { getSessionUser, unauthorized } from "@/lib/server/session";
+import {
+  notifyListChanges,
+  type DomainDoc,
+  type NotifyEnv,
+} from "@/lib/server/listNotifications";
 
 const STATE_ID = 1;
 
-interface DomainDoc {
+interface UsersDoc {
   users?: Record<string, unknown>[];
 }
 
 /** Quita material de contraseñas del documento antes de persistirlo. */
-function sanitizeDoc(doc: DomainDoc): DomainDoc {
+function sanitizeDoc(doc: UsersDoc): UsersDoc {
   return {
     ...doc,
     users: (doc.users ?? []).map((u) => {
@@ -41,7 +47,17 @@ export async function PUT(request: Request) {
   if (!raw.doc || typeof raw.doc !== "object") {
     return NextResponse.json({ error: "Documento inválido." }, { status: 400 });
   }
-  const doc = JSON.stringify(sanitizeDoc(raw.doc as DomainDoc));
+
+  // Guardamos el doc previo para detectar cambios en listas e items.
+  const prev = await getDb()
+    .select()
+    .from(appStateTable)
+    .where(eq(appStateTable.id, STATE_ID))
+    .limit(1);
+  const oldDoc = (prev[0] ? JSON.parse(prev[0].doc) : {}) as DomainDoc;
+
+  const newDoc = sanitizeDoc(raw.doc as UsersDoc);
+  const doc = JSON.stringify(newDoc);
   const now = new Date().toISOString();
   await getDb()
     .insert(appStateTable)
@@ -50,5 +66,20 @@ export async function PUT(request: Request) {
       target: appStateTable.id,
       set: { doc, updatedAt: now },
     });
+
+  // Aviso por Telegram a los relacionados (asincrónico; no bloquea la respuesta).
+  try {
+    const { env, ctx } = await getCloudflareContext({ async: true });
+    const notify = notifyListChanges(
+      env as unknown as NotifyEnv,
+      oldDoc,
+      newDoc as DomainDoc,
+    );
+    if (ctx?.waitUntil) ctx.waitUntil(notify);
+    else await notify;
+  } catch (e) {
+    console.warn("notifyListChanges:", e);
+  }
+
   return NextResponse.json({ ok: true });
 }

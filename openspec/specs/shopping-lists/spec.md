@@ -44,3 +44,39 @@ El administrador de la lista DEBERÁ poder invitar a otros usuarios (cuentas exi
 #### Scenario: Otorgar edición a un invitado
 - **WHEN** el administrador cambia el permiso del invitado a edición desde la sección de invitados
 - **THEN** el invitado puede agregar, quitar y marcar items de la lista
+
+### Requirement: Edición por borrador con guardado único
+
+El detalle de la lista DEBERÁ (SHALL) funcionar como un borrador local: los cambios en unidades, check de items, quitar/agregar productos, etiquetas, fecha programada e importancia NO DEBERÁN (SHALL NOT) persistirse por input individual. Un único botón **"Guardar cambios"** aplicará todo el contenido de una vez (PUT completo del estado), lo que produce una única sincronización y un único reporte de cambios por Telegram.
+
+#### Scenario: Cambios pendientes
+- **WHEN** el usuario edita campos sin tocar "Guardar cambios"
+- **THEN** se muestra el aviso "Cambios sin guardar" y nada se persiste hasta confirmar
+
+#### Scenario: Guardar aplica todo junto
+- **WHEN** el usuario toca "Guardar cambios" tras varias ediciones
+- **THEN** todos los cambios se aplican en una sola escritura del estado y los relacionados reciben un reporte consolidado
+
+### Requirement: Eliminar lista
+
+El usuario con permiso de edición DEBERÁ (SHALL) poder eliminar la lista desde el detalle, previa confirmación. Al eliminarse se borran también sus items e invitaciones asociadas.
+
+#### Scenario: Eliminación confirmada
+- **WHEN** el usuario confirma "Eliminar lista"
+- **THEN** la lista, sus items e invitaciones se eliminan y se vuelve al listado del place
+
+### Requirement: Visibilidad de acceso en el detalle
+
+La sección de invitados del detalle DEBERÁ (SHALL) mostrar también a los administradores de la lista: el creador etiquetado como **"Propietario"** y los admins del place como **"Admin"**, antes que los invitados con su permiso. La sección forma parte de la tarjeta de configuración, separada por una división.
+
+#### Scenario: Propietario identificado
+- **WHEN** se abre el detalle de una lista
+- **THEN** el creador aparece primero con etiqueta "Propietario" y los invitados debajo con su permiso
+
+### Requirement: Vista de solo lectura sin huecos
+
+Cuando el usuario no pueda editar la lista, la vista DEBERÁ (SHALL) adaptarse: las etiquetas y fecha programada se muestran en una tarjeta informativa, y si no hay contenido para la columna lateral la lista de productos ocupa todo el ancho.
+
+#### Scenario: Lista sin panel lateral
+- **WHEN** un lector abre una lista sin etiquetas, fecha ni invitados
+- **THEN** los productos ocupan todo el ancho sin columna vacía

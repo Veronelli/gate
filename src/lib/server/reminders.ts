@@ -61,8 +61,8 @@ export async function runReminders(env: RemindersEnv): Promise<{
   failed: number;
   skipped: number;
 }> {
-  const token = env.TELEGRAM_BOT_TOKEN;
-  const appUrl = env.APP_URL;
+  const token = env.TELEGRAM_BOT_TOKEN ?? process.env.TELEGRAM_BOT_TOKEN;
+  const appUrl = env.APP_URL ?? process.env.APP_URL;
   if (!token || !appUrl) {
     return { sent: 0, failed: 0, skipped: 0 };
   }

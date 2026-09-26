@@ -33,3 +33,15 @@ Los productos, las listas y la configuración de variables de consumo PERTENECEN
 #### Scenario: Configuración independiente de consumo
 - **WHEN** el administrador ajusta las variables de consumo del place activo
 - **THEN** el cambio solo afecta los cálculos de ese place y no los de otros places del usuario
+
+### Requirement: Miembros visibles con roles claros
+
+Todos los miembros del place DEBERÁN (SHALL) poder ver la lista de miembros del place activo. El creador DEBERÁ (SHALL) identificarse como **"Propietario"** y el resto con su rol (**Admin**, **Escritura**, **Lectura**). Solo los administradores verán los controles de cambio de rol, eliminación e invitación.
+
+#### Scenario: Miembro no admin consulta la lista
+- **WHEN** un miembro sin rol admin ve la sección de miembros
+- **THEN** ve a todos los miembros con su rol (Propietario/Admin/Escritura/Lectura) sin controles de edición
+
+#### Scenario: Admin gestiona miembros
+- **WHEN** un admin ve la sección de miembros
+- **THEN** puede cambiar roles, quitar miembros e invitar por username

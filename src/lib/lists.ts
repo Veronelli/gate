@@ -287,6 +287,28 @@ export function addListItem(
   return ok(newItem);
 }
 
+/** Elimina la lista completa: sus items e invitaciones (requiere edición). */
+export function deleteList(
+  listId: string,
+  byUserId: string,
+): ListsResult<null> {
+  const list = getList(listId);
+  if (!list) return fail("La lista no existe.");
+  if (!canEditList(listId, byUserId)) {
+    return fail("No tenés permiso para eliminar esta lista.");
+  }
+  updateCollection<ListItem>(COLLECTIONS.items, (items) =>
+    items.filter((i) => i.listId !== listId),
+  );
+  updateCollection<ListInvite>(COLLECTIONS.invites, (items) =>
+    items.filter((i) => i.listId !== listId),
+  );
+  updateCollection<ShoppingList>(COLLECTIONS.lists, (items) =>
+    items.filter((l) => l.id !== listId),
+  );
+  return ok(null);
+}
+
 export function removeListItem(
   listId: string,
   byUserId: string,

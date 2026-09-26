@@ -46,6 +46,20 @@ export async function upsertContact(
   return contact;
 }
 
+/** Quita solo la vinculación con Telegram; conserva el teléfono. */
+export async function unlinkTelegram(userId: string): Promise<void> {
+  await getDb()
+    .update(contactsTable)
+    .set({ telegramChatId: null })
+    .where(eq(contactsTable.userId, userId));
+}
+
+export async function deleteContact(userId: string): Promise<void> {
+  await getDb()
+    .delete(contactsTable)
+    .where(eq(contactsTable.userId, userId));
+}
+
 /** Guarda el chat_id cuando el usuario habla con el bot (/start). */
 export async function linkTelegramChat(
   userId: string,
